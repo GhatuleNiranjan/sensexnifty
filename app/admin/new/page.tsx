@@ -222,7 +222,7 @@ export default function NewPostPage() {
                     <label className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
                         4. Full Article Content *
                     </label>
-                    <TipTapEditor content={content} setContent={setContent} />
+                    <TipTapEditor value={content} onChange={setContent} />
                 </div>
 
                 {/* 5. Additional Options */}
