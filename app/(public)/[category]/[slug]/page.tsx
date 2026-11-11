@@ -1,121 +1,134 @@
-import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import TopBar from "@/components/public/TopBar";
+import Masthead from "@/components/public/Masthead";
+import Navigation from "@/components/public/Navigation";
+import EditionStrip from "@/components/public/EditionStrip";
+import Footer from "@/components/public/Footer";
+import { getArticleBySlug } from "@/lib/posts";
+import { formatFullArticleDate } from "@/lib/date";
 
-export const revalidate = 0;
-
-interface PostPageProps {
-    params: Promise<{
-        category: string;
-        slug: string;
-    }>;
+interface ArticlePageProps {
+    params: Promise<{ slug: string }>;
 }
 
-export default async function ArticlePage({ params }: PostPageProps) {
-    const { category, slug } = await params;
+export default async function ArticlePage({ params }: ArticlePageProps) {
+    const resolvedParams = await params;
+    const article = await getArticleBySlug(resolvedParams.slug);
 
-    const post = await prisma.post.findUnique({
-        where: { slug },
-    });
-
-    if (!post || post.category.toLowerCase() !== category.toLowerCase()) {
+    if (!article) {
         notFound();
     }
 
-    const formattedDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-    });
-
-    const formattedTime = new Date(post.publishedAt).toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    });
-    const articleBody = post.content?.trim() === post.summary?.trim() ? "" : post.content;
-
     return (
-        <article className="max-w-4xl mx-auto px-4 py-8 font-serif">
-            <Link
-                href={`/${post.category.toLowerCase()}`}
-                className="inline-flex items-center gap-2 mb-8 text-xs font-sans font-bold uppercase tracking-widest text-[#6B6B6B] hover:text-[#1A1A1A]"
-            >
-                <span aria-hidden="true">←</span>
-                Back to {post.category}
-            </Link>
+        <main className="min-h-screen bg-white">
+            <TopBar />
+            <Masthead />
+            <Navigation />
+            <EditionStrip />
 
-            {/* Category Breadcrumb */}
-            <div className="mb-4">
-                <Link
-                    href={`/${post.category}`}
-                    className="text-xs font-sans font-bold tracking-widest text-[#1A3A5C] uppercase hover:underline"
-                >
-                    {post.category}
-                </Link>
-            </div>
-
-            {/* Main Title / Headline */}
-            <h1 className="font-serif text-3xl md:text-5xl font-extrabold text-[#1A1A1A] leading-tight mb-4">
-                {post.title}
-            </h1>
-
-            {/* Subtitle / Deck */}
-            {post.summary && (
-                <p className="font-serif text-lg md:text-xl text-[#6B6B6B] italic mb-6 border-l-2 border-[#1A3A5C] pl-4">
-                    {post.summary}
-                </p>
-            )}
-
-            {/* Metadata Line */}
-            <div className="flex items-center justify-between text-xs font-sans text-[#6B6B6B] border-t border-b border-[#E0E0E0] py-3 mb-8 uppercase tracking-wider">
-                <div>
-                    <span className="font-bold text-[#1A1A1A]">BY {post.author}</span>
-                    <span className="mx-2">•</span>
-                    <span>{formattedDate} · {formattedTime} IST</span>
-                </div>
-            </div>
-
-            {/* Featured Image */}
-            {post.imageUrl && (
-                <div className="mb-8">
-                    <div className="relative aspect-[16/9] w-full bg-[#F5F5F0] border border-[#E0E0E0] overflow-hidden">
-                        <Image
-                            src={post.imageUrl}
-                            alt={post.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
-                            className="object-cover"
-                            priority
-                        />
-                    </div>
-                    {post.imageCaption && (
-                        <p className="mt-2 text-xs font-sans text-[#6B6B6B] uppercase tracking-wider">
-                            {post.imageCaption}
-                        </p>
+            <article className="max-w-4xl mx-auto px-4 py-10">
+                <Link href={`/${article.category.toLowerCase()}`} className="inline-block mb-6 text-sm hover:underline">← Back to {article.category}</Link>
+                <div className="flex items-center space-x-2 text-xs font-bold tracking-widest text-[#1A3A5C] uppercase mb-3">
+                    <Link href={`/${article.category.toLowerCase()}`} className="hover:underline">
+                        {article.category}
+                    </Link>
+                    {article.location && (
+                        <span className="text-[#6B6B6B]">· {article.location}</span>
                     )}
                 </div>
-            )}
 
-            {/* Article Content Body */}
-            {articleBody && (
-                <div
-                    className="prose prose-lg max-w-none font-serif text-[#1A1A1A] leading-relaxed [&_p]:mb-6 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-4 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-6 [&_blockquote]:border-l-4 [&_blockquote]:border-[#1A3A5C] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-6"
-                    dangerouslySetInnerHTML={{ __html: articleBody }}
-                />
-            )}
-
-            {/* Bottom Section Divider */}
-            <div className="mt-12 pt-6 border-t border-[#E0E0E0] flex justify-between items-center text-xs font-sans text-[#6B6B6B]">
-                <span>SENSEXNIFTY FINANCIAL REPORTING</span>
-                <Link
-                    href={`/${post.category}`}
-                    className="hover:text-[#1A3A5C] font-semibold uppercase tracking-wider"
+                <h1
+                    className="text-3xl md:text-5xl font-black text-[#1A1A1A] leading-[1.15] tracking-tight"
+                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                 >
-                    MORE {post.category} NEWS →
-                </Link>
-            </div>
-        </article>
+                    {article.title}
+                </h1>
+
+                <p className="mt-4 text-base md:text-xl text-[#6B6B6B] italic leading-relaxed border-l-2 border-[#1A3A5C] pl-4">
+                    {article.summary}
+                </p>
+
+                <div className="mt-6 py-3 border-y border-[#E0E0E0] flex flex-wrap items-center justify-between text-xs text-[#6B6B6B] gap-4">
+                    <div className="flex items-center space-x-3">
+                        <span className="font-bold text-[#1A1A1A] uppercase tracking-wider">
+                            BY {article.author}
+                        </span>
+                        <span>·</span>
+                        <time>{formatFullArticleDate(article.publishedAt)}</time>
+                    </div>
+                </div>
+
+                {article.imageUrl && (
+                    <figure className="my-8">
+                        <div className="relative w-full aspect-[16/9] bg-[#F5F5F0] border border-[#E0E0E0] overflow-hidden">
+                            <Image
+                                src={article.imageUrl}
+                                alt={article.title}
+                                fill
+                                priority
+                                className="object-cover"
+                                sizes="(max-width: 1024px) 100vw, 896px"
+                            />
+                        </div>
+                        {article.imageCaption && (
+                            <figcaption className="mt-2 text-xs text-[#6B6B6B] border-l border-[#E0E0E0] pl-2">
+                                {article.imageCaption}
+                            </figcaption>
+                        )}
+                    </figure>
+                )}
+
+                <div className="prose prose-lg max-w-none text-[#1A1A1A] leading-relaxed text-base md:text-lg">
+                    {article.content?.includes("</") ? <div dangerouslySetInnerHTML={{ __html: article.content }} /> : article.content?.split("\n\n").map((paragraph: string, index: number) => {
+                        if (paragraph.startsWith("### ")) {
+                            return (
+                                <h3
+                                    key={index}
+                                    className="text-xl md:text-2xl font-bold text-[#1A1A1A] mt-8 mb-4 border-b border-[#E0E0E0] pb-2"
+                                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+                                >
+                                    {paragraph.replace("### ", "")}
+                                </h3>
+                            );
+                        }
+
+                        if (paragraph.startsWith("> **Disclaimer:**")) {
+                            return (
+                                <div
+                                    key={index}
+                                    className="my-8 p-5 bg-[#F8F8F8] border-l-4 border-[#1A3A5C] text-xs md:text-sm text-[#6B6B6B] leading-relaxed"
+                                >
+                                    <strong className="text-[#1A1A1A] uppercase block mb-1">
+                                        SEBI / Market Disclaimer:
+                                    </strong>
+                                    {paragraph.replace("> **Disclaimer:** ", "").replace(/\*/g, "")}
+                                </div>
+                            );
+                        }
+
+                        if (paragraph.trim() === "---") {
+                            return <hr key={index} className="my-6 border-[#E0E0E0]" />;
+                        }
+
+                        return (
+                            <p key={index} className="mb-5 leading-relaxed text-[#1A1A1A]">
+                                {paragraph}
+                            </p>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-12 pt-6 border-t border-[#1A1A1A] flex justify-between items-center text-xs uppercase tracking-widest text-[#6B6B6B]">
+                    <span>SENSEXNIFTY FINANCIAL REPORTING</span>
+                    <Link href={`/${article.category.toLowerCase()}`} className="text-[#1A3A5C] font-bold hover:underline">
+                        MORE {article.category} NEWS →
+                    </Link>
+                </div>
+            </article>
+
+            <Footer />
+        </main>
     );
 }

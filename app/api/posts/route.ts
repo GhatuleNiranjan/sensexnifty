@@ -3,6 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+export async function GET() {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(await db.post.findMany({ orderBy: { publishedAt: "desc" } }));
+}
+
 // POST: Create New Article
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
@@ -27,6 +33,10 @@ export async function POST(request: Request) {
             status,
         } = body;
 
+        if (!title?.trim() || (status !== "DRAFT" && (!content || !content.replace(/<[^>]*>/g, "").trim()))) {
+            return NextResponse.json({ error: "Enter a title and full article text before publishing." }, { status: 400 });
+        }
+
         // Generate clean slug from title
         const slug = title
             .toLowerCase()
@@ -46,7 +56,7 @@ export async function POST(request: Request) {
                 slug,
                 title,
                 summary,
-                content: content || summary,
+                content: content || "",
                 category,
                 location: location || null,
                 imageUrl: imageUrl || null,

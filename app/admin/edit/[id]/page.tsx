@@ -38,14 +38,14 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                 const data = await res.json();
                 setTitle(data.title || "");
                 setSubtitle(data.summary || "");
-                setCategory(data.category || "usa");
+                setCategory((data.category || "USA").toLowerCase());
                 setImageUrl(data.imageUrl || "");
                 setImageCaption(data.imageCaption || "");
                 setContent(data.content || "");
                 setIsTopStory(Boolean(data.isTopStory));
                 setAuthorName(data.author || "The SensexNifty Desk");
-            } catch (err: any) {
-                setError(err.message || "Failed to load article");
+            } catch (err: unknown) {
+                setError((err instanceof Error ? err.message : "") || "Failed to load article");
             } finally {
                 setLoading(false);
             }
@@ -75,8 +75,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
             }
 
             setImageUrl(data.url);
-        } catch (err: any) {
-            alert(err.message || "Image upload failed.");
+        } catch (err: unknown) {
+            alert((err instanceof Error ? err.message : "") || "Image upload failed.");
         } finally {
             setUploading(false);
         }
@@ -113,8 +113,8 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
             router.push("/admin");
             router.refresh();
-        } catch (err: any) {
-            setError(err.message || "Failed to update article.");
+        } catch (err: unknown) {
+            setError((err instanceof Error ? err.message : "") || "Failed to update article.");
             setSaving(false);
         }
     };

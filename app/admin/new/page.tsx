@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import TipTapEditor from "@/components/admin/TipTapEditor";
 import { CATEGORIES } from "@/lib/constants";
-import { Upload, ArrowLeft, Send, CheckCircle2 } from "lucide-react";
+import { Upload, ArrowLeft, Send } from "lucide-react";
 
 export default function NewPostPage() {
     const router = useRouter();
@@ -20,7 +20,6 @@ export default function NewPostPage() {
     const [content, setContent] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [imageCaption, setImageCaption] = useState("");
-    const [pdfUrl, setPdfUrl] = useState("");
     const [isTopStory, setIsTopStory] = useState(false);
 
     // Handle Cover Image File Upload
@@ -114,7 +113,7 @@ export default function NewPostPage() {
 
                     {imageUrl ? (
                         <div className="relative aspect-[16/9] bg-[#F5F5F0] border border-[#E0E0E0] overflow-hidden mb-4">
-                            <Image src={imageUrl} alt="Cover Preview" fill className="object-cover" />
+                            <Image src={imageUrl} alt="Cover Preview" fill sizes="(max-width: 768px) 100vw, 896px" className="object-cover" />
                             <button
                                 type="button"
                                 onClick={() => setImageUrl("")}
