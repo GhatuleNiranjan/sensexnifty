@@ -36,19 +36,29 @@ export async function PUT(
         const { id } = await params;
         const body = await req.json();
 
-        const { title, subtitle, content, category, imageUrl, imageCaption, isTopStory, authorName } = body;
+        const {
+            title,
+            subtitle,
+            summary,
+            content,
+            category,
+            imageUrl,
+            imageCaption,
+            isTopStory,
+            authorName,
+        } = body;
 
         const updatedPost = await prisma.post.update({
             where: { id },
             data: {
                 title,
-                subtitle: subtitle || null,
+                summary: summary ?? subtitle ?? "",
                 content,
                 category,
                 imageUrl: imageUrl || null,
                 imageCaption: imageCaption || null,
                 isTopStory: Boolean(isTopStory),
-                authorName: authorName || "The SensexNifty Desk",
+                author: authorName || "THE SENSEXNIFTY DESK",
             },
         });
 
