@@ -37,13 +37,13 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                 }
                 const data = await res.json();
                 setTitle(data.title || "");
-                setSubtitle(data.subtitle || "");
+                setSubtitle(data.summary || "");
                 setCategory(data.category || "usa");
                 setImageUrl(data.imageUrl || "");
                 setImageCaption(data.imageCaption || "");
                 setContent(data.content || "");
                 setIsTopStory(Boolean(data.isTopStory));
-                setAuthorName(data.authorName || "The SensexNifty Desk");
+                setAuthorName(data.author || "The SensexNifty Desk");
             } catch (err: any) {
                 setError(err.message || "Failed to load article");
             } finally {
@@ -96,6 +96,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                 body: JSON.stringify({
                     title,
                     subtitle,
+                    summary: subtitle,
                     category,
                     imageUrl,
                     imageCaption,
