@@ -14,8 +14,8 @@ export default function CategorySection({
     articles,
 }: CategorySectionProps) {
     return (
-        <section className="py-8 border-t-2 border-[#1A1A1A]">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 mb-6 border-b border-[#E0E0E0] pb-2">
+        <section className="py-10 border-t-2 border-[#1A1A1A]">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-2 mb-8 border-b border-[#E0E0E0] pb-3">
                 <h2
                     className="text-2xl font-black uppercase text-[#1A1A1A] tracking-tight"
                     style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
@@ -30,7 +30,7 @@ export default function CategorySection({
                 </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {articles.map((article: Post) => (
                     <ArticleCard key={article.id} article={article} showImage={true} />
                 ))}

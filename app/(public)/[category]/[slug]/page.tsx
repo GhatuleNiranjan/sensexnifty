@@ -29,7 +29,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <EditionStrip />
 
             <article className="max-w-4xl mx-auto px-4 py-10">
-                <Link href={`/${article.category.toLowerCase()}`} className="inline-block mb-6 text-sm hover:underline">← Back to {article.category}</Link>
+                <Link
+                    href={`/${article.category.toLowerCase()}`}
+                    className="inline-block mb-6 text-sm text-[#1A3A5C] hover:underline font-semibold"
+                >
+                    ← Back to {article.category}
+                </Link>
+
                 <div className="flex items-center space-x-2 text-xs font-bold tracking-widest text-[#1A3A5C] uppercase mb-3">
                     <Link href={`/${article.category.toLowerCase()}`} className="hover:underline">
                         {article.category}
@@ -46,14 +52,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     {article.title}
                 </h1>
 
-                <p className="mt-4 text-base md:text-xl text-[#6B6B6B] italic leading-relaxed border-l-2 border-[#1A3A5C] pl-4">
-                    {article.summary}
-                </p>
+                {article.summary && (
+                    <p className="mt-4 text-base md:text-xl text-[#6B6B6B] italic leading-relaxed border-l-2 border-[#1A3A5C] pl-4">
+                        {article.summary}
+                    </p>
+                )}
 
                 <div className="mt-6 py-3 border-y border-[#E0E0E0] flex flex-wrap items-center justify-between text-xs text-[#6B6B6B] gap-4">
                     <div className="flex items-center space-x-3">
                         <span className="font-bold text-[#1A1A1A] uppercase tracking-wider">
-                            BY {article.author}
+                            BY {article.author || "THE SENSEXNIFTY DESK"}
                         </span>
                         <span>·</span>
                         <time>{formatFullArticleDate(article.publishedAt)}</time>
@@ -80,49 +88,57 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     </figure>
                 )}
 
-                <div className="prose prose-lg max-w-none text-[#1A1A1A] leading-relaxed text-base md:text-lg">
-                    {article.content?.includes("</") ? <div dangerouslySetInnerHTML={{ __html: article.content }} /> : article.content?.split("\n\n").map((paragraph: string, index: number) => {
-                        if (paragraph.startsWith("### ")) {
+                {/* Article Content Body with Hyperlink & Image Alignment Styles */}
+                <div className="prose prose-lg max-w-none text-[#1A1A1A] leading-relaxed text-base md:text-lg [&_a]:text-[#0056b3] [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-semibold hover:[&_a]:text-[#6B1C2A] [&_[data-align='left']]:flex [&_[data-align='left']]:justify-start [&_[data-align='center']]:flex [&_[data-align='center']]:justify-center [&_[data-align='right']]:flex [&_[data-align='right']]:justify-end">
+                    {article.content?.includes("</") ? (
+                        <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                    ) : (
+                        article.content?.split("\n\n").map((paragraph: string, index: number) => {
+                            if (paragraph.startsWith("### ")) {
+                                return (
+                                    <h3
+                                        key={index}
+                                        className="text-xl md:text-2xl font-bold text-[#1A1A1A] mt-8 mb-4 border-b border-[#E0E0E0] pb-2"
+                                        style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+                                    >
+                                        {paragraph.replace("### ", "")}
+                                    </h3>
+                                );
+                            }
+
+                            if (paragraph.startsWith("> **Disclaimer:**")) {
+                                return (
+                                    <div
+                                        key={index}
+                                        className="my-8 p-5 bg-[#F8F8F8] border-l-4 border-[#1A3A5C] text-xs md:text-sm text-[#6B6B6B] leading-relaxed"
+                                    >
+                                        <strong className="text-[#1A1A1A] uppercase block mb-1">
+                                            SEBI / Market Disclaimer:
+                                        </strong>
+                                        {paragraph.replace("> **Disclaimer:** ", "").replace(/\*/g, "")}
+                                    </div>
+                                );
+                            }
+
+                            if (paragraph.trim() === "---") {
+                                return <hr key={index} className="my-6 border-[#E0E0E0]" />;
+                            }
+
                             return (
-                                <h3
-                                    key={index}
-                                    className="text-xl md:text-2xl font-bold text-[#1A1A1A] mt-8 mb-4 border-b border-[#E0E0E0] pb-2"
-                                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                                >
-                                    {paragraph.replace("### ", "")}
-                                </h3>
+                                <p key={index} className="mb-5 leading-relaxed text-[#1A1A1A]">
+                                    {paragraph}
+                                </p>
                             );
-                        }
-
-                        if (paragraph.startsWith("> **Disclaimer:**")) {
-                            return (
-                                <div
-                                    key={index}
-                                    className="my-8 p-5 bg-[#F8F8F8] border-l-4 border-[#1A3A5C] text-xs md:text-sm text-[#6B6B6B] leading-relaxed"
-                                >
-                                    <strong className="text-[#1A1A1A] uppercase block mb-1">
-                                        SEBI / Market Disclaimer:
-                                    </strong>
-                                    {paragraph.replace("> **Disclaimer:** ", "").replace(/\*/g, "")}
-                                </div>
-                            );
-                        }
-
-                        if (paragraph.trim() === "---") {
-                            return <hr key={index} className="my-6 border-[#E0E0E0]" />;
-                        }
-
-                        return (
-                            <p key={index} className="mb-5 leading-relaxed text-[#1A1A1A]">
-                                {paragraph}
-                            </p>
-                        );
-                    })}
+                        })
+                    )}
                 </div>
 
                 <div className="mt-12 pt-6 border-t border-[#1A1A1A] flex justify-between items-center text-xs uppercase tracking-widest text-[#6B6B6B]">
                     <span>SENSEXNIFTY FINANCIAL REPORTING</span>
-                    <Link href={`/${article.category.toLowerCase()}`} className="text-[#1A3A5C] font-bold hover:underline">
+                    <Link
+                        href={`/${article.category.toLowerCase()}`}
+                        className="text-[#1A3A5C] font-bold hover:underline"
+                    >
                         MORE {article.category} NEWS →
                     </Link>
                 </div>

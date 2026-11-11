@@ -18,9 +18,13 @@ export const revalidate = 0;
 
 export default async function HomePage() {
   const topStory = await getTopStory();
-  const latestArticles = await getLatestArticles(4);
+  const latestArticles = await getLatestArticles(6);
   const financeArticles = await getArticlesByCategory("FINANCE", 3);
   const opinionArticles = await getArticlesByCategory("OPINION", 2);
+
+  // Take the first 4 for the sidebar, and next 2 for secondary hero feature
+  const sidebarArticles = latestArticles.slice(0, 4);
+  const secondaryHeroArticles = latestArticles.slice(2, 4);
 
   return (
     <main className="min-h-screen bg-white">
@@ -32,10 +36,15 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-8">
-            {topStory && <HeroSection article={topStory} />}
+            {topStory && (
+              <HeroSection
+                article={topStory}
+                secondaryArticles={secondaryHeroArticles}
+              />
+            )}
           </div>
           <div className="lg:col-span-4">
-            <LatestSidebar articles={latestArticles} />
+            <LatestSidebar articles={sidebarArticles} />
           </div>
         </div>
       </section>
