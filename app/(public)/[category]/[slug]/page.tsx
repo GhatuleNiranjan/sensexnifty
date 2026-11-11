@@ -29,6 +29,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <EditionStrip />
 
             <article className="max-w-4xl mx-auto px-4 py-10">
+                <Link href={`/${article.category.toLowerCase()}`} className="inline-block mb-6 text-sm hover:underline">← Back to {article.category}</Link>
                 <div className="flex items-center space-x-2 text-xs font-bold tracking-widest text-[#1A3A5C] uppercase mb-3">
                     <Link href={`/${article.category.toLowerCase()}`} className="hover:underline">
                         {article.category}
@@ -80,7 +81,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 )}
 
                 <div className="prose prose-lg max-w-none text-[#1A1A1A] leading-relaxed text-base md:text-lg">
-                    {article.content?.split("\n\n").map((paragraph: string, index: number) => {
+                    {article.content?.includes("</") ? <div dangerouslySetInnerHTML={{ __html: article.content }} /> : article.content?.split("\n\n").map((paragraph: string, index: number) => {
                         if (paragraph.startsWith("### ")) {
                             return (
                                 <h3

@@ -8,6 +8,8 @@ export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     try {
         const { id } = await params;
         const post = await db.post.findUnique({ where: { id } });
@@ -17,7 +19,7 @@ export async function GET(
         }
 
         return NextResponse.json(post);
-    } catch (error) {
+    } catch {
         return NextResponse.json({ error: "Failed to fetch post" }, { status: 500 });
     }
 }
@@ -46,7 +48,17 @@ export async function PATCH(
 
         const updatedPost = await db.post.update({
             where: { id },
-            data: { ...body },
+            data: {
+                title: body.title,
+                summary: body.summary ?? body.subtitle,
+                content: body.content,
+                category: body.category?.toUpperCase(),
+                author: body.author ?? body.authorName,
+                imageUrl: body.imageUrl,
+                imageCaption: body.imageCaption,
+                isTopStory: body.isTopStory,
+                status: body.status,
+            },
         });
 
         return NextResponse.json(updatedPost);
@@ -57,6 +69,8 @@ export async function PATCH(
 }
 
 // DELETE Post
+export const PUT = PATCH;
+
 export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }

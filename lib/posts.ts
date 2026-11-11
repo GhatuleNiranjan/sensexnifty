@@ -35,7 +35,7 @@ export async function getArticlesByCategory(
 ): Promise<Post[]> {
     const posts = await db.post.findMany({
         where: {
-            category: category as any,
+            category,
             status: "PUBLISHED",
         },
         orderBy: { publishedAt: "desc" },
@@ -45,8 +45,8 @@ export async function getArticlesByCategory(
 }
 
 export async function getArticleBySlug(slug: string): Promise<Post | null> {
-    const post = await db.post.findUnique({
-        where: { slug },
+    const post = await db.post.findFirst({
+        where: { slug, status: "PUBLISHED" },
     });
     return post as unknown as Post | null;
 }

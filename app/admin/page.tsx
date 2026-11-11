@@ -21,7 +21,6 @@ export default function AdminDashboardPage() {
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const fetchPosts = async () => {
-        setLoading(true);
         try {
             const res = await fetch("/api/posts");
             if (res.ok) {
@@ -36,7 +35,13 @@ export default function AdminDashboardPage() {
     };
 
     useEffect(() => {
-        fetchPosts();
+        let active = true;
+        fetch("/api/posts").then(async (res) => {
+            if (!res.ok) throw new Error("Failed to load posts");
+            const data = await res.json();
+            if (active) setPosts(data);
+        }).catch(console.error).finally(() => { if (active) setLoading(false); });
+        return () => { active = false; };
     }, []);
 
     const handleDelete = async (id: string) => {
@@ -51,7 +56,7 @@ export default function AdminDashboardPage() {
             } else {
                 alert("Failed to delete post.");
             }
-        } catch (error) {
+        } catch {
             alert("Error deleting post.");
         } finally {
             setDeletingId(null);

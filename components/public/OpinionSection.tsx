@@ -38,7 +38,7 @@ export default function OpinionSection({ articles }: OpinionSectionProps) {
                                     className="text-lg md:text-xl font-bold text-[#1A1A1A] mt-1 leading-snug group-hover:text-[#1A3A5C] transition-colors"
                                     style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                                 >
-                                    "{item.title}"
+                                    &ldquo;{item.title}&rdquo;
                                 </h3>
                             </Link>
                             <p className="mt-3 text-xs md:text-sm text-[#6B6B6B] leading-relaxed italic">

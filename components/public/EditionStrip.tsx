@@ -1,20 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 export default function EditionStrip() {
-    const [formattedDate, setFormattedDate] = useState<string>("");
-
-    useEffect(() => {
-        setFormattedDate(
-            new Date().toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            })
-        );
-    }, []);
+    const formattedDate = useSyncExternalStore(() => () => {}, () => new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kolkata" }), () => "");
 
     return (
         <div className="border-b border-[#E0E0E0] py-2 px-4 bg-white text-[10px] sm:text-[11px] font-sans text-[#6B6B6B] uppercase tracking-wider">
