@@ -2,7 +2,6 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 
 interface TipTapEditorProps {
@@ -14,9 +13,6 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit,
-            Link.configure({
-                openOnClick: false,
-            }),
             Image,
         ],
         content: value || "",
