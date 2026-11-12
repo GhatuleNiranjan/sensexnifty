@@ -9,6 +9,7 @@ import Footer from "@/components/public/Footer";
 import ShareButtons from "@/components/public/ShareButtons"; // <-- Import
 import { Tag } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export async function generateMetadata({
   params,
@@ -151,12 +152,13 @@ export default async function ArticlePage({
               </div>
               <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag, idx) => (
-                  <span
+                  <Link
                     key={idx}
-                    className="text-xs font-sans font-medium text-[#1A3A5C] bg-[#F5F5F0] border border-[#E0E0E0] px-3 py-1 rounded-none hover:bg-[#E0E0E0] transition-colors"
+                    href={`/search?tag=${encodeURIComponent(tag)}`}
+                    className="text-xs font-sans font-medium text-[#1A3A5C] bg-[#F5F5F0] border border-[#E0E0E0] px-3 py-1 hover:bg-[#E0E0E0] transition-colors"
                   >
                     #{tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>
