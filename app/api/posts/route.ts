@@ -3,13 +3,30 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+function normalizeTags(input: unknown): string[] {
+    if (!input) return [];
+    const raw = Array.isArray(input) ? input.join(",") : String(input);
+    const seen = new Set<string>();
+    const tags: string[] = [];
+
+    for (const part of raw.split(",")) {
+        const cleaned = part.trim().replace(/^#/, "").replace(/\s+/g, " ");
+        if (!cleaned) continue;
+        const key = cleaned.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        tags.push(cleaned);
+    }
+
+    return tags.slice(0, 12);
+}
+
 export async function GET() {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     return NextResponse.json(await db.post.findMany({ orderBy: { publishedAt: "desc" } }));
 }
 
-// POST: Create New Article
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
 
@@ -31,19 +48,25 @@ export async function POST(request: Request) {
             isTopStory,
             isBreaking,
             status,
+            tags,
         } = body;
 
-        if (!title?.trim() || (status !== "DRAFT" && (!content || !content.replace(/<[^>]*>/g, "").trim()))) {
-            return NextResponse.json({ error: "Enter a title and full article text before publishing." }, { status: 400 });
+        if (
+            !title?.trim() ||
+            (status !== "DRAFT" && (!content || !content.replace(/<[^>]*>/g, "").trim()))
+        ) {
+            return NextResponse.json(
+                { error: "Enter a title and full article text before publishing." },
+                { status: 400 }
+            );
         }
 
-        // Generate clean slug from title
-        const slug = title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)+/g, "") + `-${Date.now().toString().slice(-4)}`;
+        const slug =
+            title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/(^-|-$)+/g, "") + `-${Date.now().toString().slice(-4)}`;
 
-        // If marked as Top Story, un-top previous top story
         if (isTopStory) {
             await db.post.updateMany({
                 where: { isTopStory: true },
@@ -55,10 +78,11 @@ export async function POST(request: Request) {
             data: {
                 slug,
                 title,
-                summary,
+                summary: summary || "",
                 content: content || "",
                 category,
                 location: location || null,
+                tags: normalizeTags(tags),
                 imageUrl: imageUrl || null,
                 imageCaption: imageCaption || null,
                 pdfUrl: pdfUrl || null,

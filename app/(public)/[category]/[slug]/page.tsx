@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import TopBar from "@/components/public/TopBar";
 import Masthead from "@/components/public/Masthead";
 import Navigation from "@/components/public/Navigation";
@@ -13,6 +14,26 @@ interface ArticlePageProps {
     params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+    const { slug } = await params;
+    const article = await getArticleBySlug(slug);
+    if (!article) return { title: "Article Not Found | SensexNifty" };
+
+    const tags = article.tags || [];
+    return {
+        title: `${article.title} | SensexNifty`,
+        description: article.summary,
+        keywords: tags.length ? tags : undefined,
+        openGraph: {
+            title: article.title,
+            description: article.summary,
+            images: article.imageUrl ? [article.imageUrl] : [],
+            type: "article",
+            tags,
+        },
+    };
+}
+
 export default async function ArticlePage({ params }: ArticlePageProps) {
     const resolvedParams = await params;
     const article = await getArticleBySlug(resolvedParams.slug);
@@ -20,6 +41,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     if (!article) {
         notFound();
     }
+
+    const tags = article.tags || [];
 
     return (
         <main className="min-h-screen bg-white">
@@ -88,7 +111,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     </figure>
                 )}
 
-                {/* Article Content Body with Hyperlink & Image Alignment Styles */}
                 <div className="prose prose-lg max-w-none text-[#1A1A1A] leading-relaxed text-base md:text-lg [&_a]:text-[#0056b3] [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-semibold hover:[&_a]:text-[#6B1C2A] [&_[data-align='left']]:flex [&_[data-align='left']]:justify-start [&_[data-align='center']]:flex [&_[data-align='center']]:justify-center [&_[data-align='right']]:flex [&_[data-align='right']]:justify-end">
                     {article.content?.includes("</") ? (
                         <div dangerouslySetInnerHTML={{ __html: article.content }} />
@@ -132,6 +154,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                         })
                     )}
                 </div>
+
+                {/* Phase 2: Hashtag / SEO pills */}
+                {tags.length > 0 && (
+                    <div className="mt-10 pt-6 border-t border-[#E0E0E0]">
+                        <div className="text-[10px] font-bold tracking-widest text-[#6B6B6B] uppercase mb-3">
+                            Related Topics & Tags
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {tags.map((tag) => (
+                                <span
+                                    key={tag}
+                                    className="inline-flex items-center px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border border-[#E0E0E0] bg-[#F8F8F8] text-[#1A3A5C]"
+                                >
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-12 pt-6 border-t border-[#1A1A1A] flex justify-between items-center text-xs uppercase tracking-widest text-[#6B6B6B]">
                     <span>SENSEXNIFTY FINANCIAL REPORTING</span>

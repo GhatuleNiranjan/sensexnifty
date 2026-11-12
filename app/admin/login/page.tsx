@@ -2,65 +2,124 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { SITE_CONFIG } from "@/lib/constants";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Lock, Mail, AlertCircle, ArrowRight } from "lucide-react";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
+    const router = useRouter();
     const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("");
         setLoading(true);
 
-        await signIn("email", {
-            email,
-            callbackUrl: "/admin",
-        });
+        try {
+            const res = await signIn("credentials", {
+                email,
+                password,
+                redirect: false,
+            });
+
+            if (res?.error) {
+                setError(res.error || "Invalid login details.");
+                setLoading(false);
+            } else {
+                router.push("/admin");
+                router.refresh();
+            }
+        } catch (err) {
+            setError("An unexpected error occurred. Please try again.");
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-                <h1 className="text-4xl font-masthead font-black uppercase text-[#1A1A1A]">
-                    {SITE_CONFIG.name}
-                </h1>
-                <h2 className="mt-4 text-center text-sm font-bold tracking-widest text-[#6B6B6B] uppercase">
-                    Editorial Desk Login
-                </h2>
-            </div>
+        <div className="min-h-screen bg-[#F5F5F0] flex flex-col justify-center items-center px-4 py-12">
+            <div className="w-full max-w-md bg-white border border-[#E0E0E0] shadow-sm p-8">
+                {/* Masthead Header */}
+                <div className="text-center mb-8 pb-6 border-b border-[#E0E0E0]">
+                    <span className="text-[10px] font-sans font-semibold uppercase tracking-[0.25em] text-[#6B6B6B]">
+                        Editorial Control Portal
+                    </span>
+                    <h1 className="font-serif text-3xl font-extrabold tracking-tight text-[#1A1A1A] mt-1">
+                        SENSEXNIFTY
+                    </h1>
+                    <p className="font-serif italic text-xs text-[#6B6B6B] mt-1">
+                        News Behind The Numbers
+                    </p>
+                </div>
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow border border-[#E0E0E0] sm:rounded-none sm:px-10">
-                    <form className="space-y-6" onSubmit={handleSubmit}>
-                        <div>
-                            <label htmlFor="email" className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider">
-                                Authorized Email Address
-                            </label>
-                            <div className="mt-2">
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="appearance-none block w-full px-3 py-2 border border-[#E0E0E0] bg-[#F8F8F8] placeholder-[#6B6B6B] text-[#1A1A1A] focus:outline-none focus:ring-1 focus:ring-[#1A3A5C] focus:border-[#1A3A5C] sm:text-sm transition-colors"
-                                    placeholder="editor@sensexnifty.com"
-                                />
-                            </div>
-                        </div>
+                {/* Error Alert */}
+                {error && (
+                    <div className="mb-6 p-3 bg-red-50 border-l-4 border-[#6B1C2A] text-[#6B1C2A] text-xs flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                )}
 
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent text-xs font-bold uppercase tracking-wider text-white bg-[#1A1A1A] hover:bg-[#1A3A5C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A3A5C] transition-colors disabled:opacity-50"
-                            >
-                                {loading ? "Sending Link..." : "Send Magic Link"}
-                            </button>
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label className="block text-xs font-sans font-semibold uppercase tracking-wider text-[#1A1A1A] mb-2">
+                            Author Email
+                        </label>
+                        <div className="relative">
+                            <Mail className="w-4 h-4 absolute left-3 top-3 text-[#6B6B6B]" />
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="niranjanghatule17@gmail.com"
+                                className="w-full pl-9 pr-3 py-2 text-sm bg-[#F8F8F8] border border-[#E0E0E0] rounded-none focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+                            />
                         </div>
-                    </form>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-sans font-semibold uppercase tracking-wider text-[#1A1A1A] mb-2">
+                            Password
+                        </label>
+                        <div className="relative">
+                            <Lock className="w-4 h-4 absolute left-3 top-3 text-[#6B6B6B]" />
+                            <input
+                                type="password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••••••"
+                                className="w-full pl-9 pr-3 py-2 text-sm bg-[#F8F8F8] border border-[#E0E0E0] rounded-none focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-[#1A1A1A] hover:bg-[#333333] text-white text-xs font-sans font-bold uppercase tracking-widest py-3 px-4 transition-colors duration-150 flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+                    >
+                        {loading ? (
+                            "Authenticating..."
+                        ) : (
+                            <>
+                                Sign In To Desk <ArrowRight className="w-4 h-4" />
+                            </>
+                        )}
+                    </button>
+                </form>
+
+                <div className="mt-8 pt-4 border-t border-[#E0E0E0] text-center">
+                    <Link
+                        href="/"
+                        className="text-xs font-sans text-[#6B6B6B] hover:text-[#1A1A1A] transition-colors"
+                    >
+                        ← Return to Public Newspaper
+                    </Link>
                 </div>
             </div>
         </div>

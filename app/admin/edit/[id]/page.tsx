@@ -20,30 +20,30 @@ export default function EditPostPage({ params }: EditPostPageProps) {
     const [error, setError] = useState("");
 
     const [title, setTitle] = useState("");
-    const [subtitle, setSubtitle] = useState("");
-    const [category, setCategory] = useState("usa");
+    const [summary, setSummary] = useState("");
+    const [category, setCategory] = useState("FINANCE");
+    const [location, setLocation] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [imageCaption, setImageCaption] = useState("");
     const [content, setContent] = useState("");
     const [isTopStory, setIsTopStory] = useState(false);
-    const [authorName, setAuthorName] = useState("The SensexNifty Desk");
+    const [tags, setTags] = useState("");
 
     useEffect(() => {
         async function fetchPost() {
             try {
                 const res = await fetch(`/api/posts/${id}`);
-                if (!res.ok) {
-                    throw new Error("Failed to fetch post");
-                }
+                if (!res.ok) throw new Error("Failed to fetch post");
                 const data = await res.json();
                 setTitle(data.title || "");
-                setSubtitle(data.summary || "");
-                setCategory((data.category || "USA").toLowerCase());
+                setSummary(data.summary || "");
+                setCategory(data.category || "FINANCE");
+                setLocation(data.location || "");
                 setImageUrl(data.imageUrl || "");
                 setImageCaption(data.imageCaption || "");
                 setContent(data.content || "");
                 setIsTopStory(Boolean(data.isTopStory));
-                setAuthorName(data.author || "The SensexNifty Desk");
+                setTags(Array.isArray(data.tags) ? data.tags.join(", ") : "");
             } catch (err: unknown) {
                 setError((err instanceof Error ? err.message : "") || "Failed to load article");
             } finally {
@@ -70,10 +70,7 @@ export default function EditPostPage({ params }: EditPostPageProps) {
             });
 
             const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.error || "Image upload failed.");
-            }
-
+            if (!res.ok) throw new Error(data.error || "Image upload failed.");
             setImageUrl(data.url);
         } catch (err: unknown) {
             alert((err instanceof Error ? err.message : "") || "Image upload failed.");
@@ -90,19 +87,17 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         try {
             const res = await fetch(`/api/posts/${id}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     title,
-                    subtitle,
-                    summary: subtitle,
+                    summary,
                     category,
+                    location,
                     imageUrl,
                     imageCaption,
                     content,
                     isTopStory,
-                    authorName,
+                    tags,
                 }),
             });
 
@@ -127,13 +122,16 @@ export default function EditPostPage({ params }: EditPostPageProps) {
         );
     }
 
+    const tagPreview = tags
+        .split(",")
+        .map((t) => t.trim().replace(/^#/, ""))
+        .filter(Boolean);
+
     return (
         <div className="max-w-4xl mx-auto p-4 md:p-8 font-serif">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E0E0E0]">
                 <div>
-                    <h1 className="text-2xl font-serif font-bold text-[#1A1A1A]">
-                        Edit Article
-                    </h1>
+                    <h1 className="text-2xl font-serif font-bold text-[#1A1A1A]">Edit Article</h1>
                     <p className="text-xs font-sans text-[#6B6B6B] mt-1">
                         Modify fields and save changes back to the newspaper edition.
                     </p>
@@ -169,12 +167,12 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
                 <div>
                     <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                        Subtitle / Deck
+                        Summary / Deck
                     </label>
                     <input
                         type="text"
-                        value={subtitle}
-                        onChange={(e) => setSubtitle(e.target.value)}
+                        value={summary}
+                        onChange={(e) => setSummary(e.target.value)}
                         placeholder="Short summarizing line below headline..."
                         className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-serif text-base"
                     />
@@ -188,10 +186,10 @@ export default function EditPostPage({ params }: EditPostPageProps) {
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm bg-white"
+                            className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm bg-white uppercase"
                         >
                             {CATEGORIES.map((cat) => (
-                                <option key={cat.slug} value={cat.slug}>
+                                <option key={cat.slug} value={cat.name}>
                                     {cat.name}
                                 </option>
                             ))}
@@ -200,18 +198,46 @@ export default function EditPostPage({ params }: EditPostPageProps) {
 
                     <div>
                         <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                            Author Name
+                            Location
                         </label>
                         <input
                             type="text"
-                            value={authorName}
-                            onChange={(e) => setAuthorName(e.target.value)}
-                            className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm"
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm uppercase"
                         />
                     </div>
                 </div>
 
-                {/* Featured Image Upload section */}
+                {/* Tags */}
+                <div>
+                    <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
+                        Hashtags / SEO Tags
+                    </label>
+                    <input
+                        type="text"
+                        value={tags}
+                        onChange={(e) => setTags(e.target.value)}
+                        placeholder="e.g. Russia, Europe, Markets, Sensex"
+                        className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm"
+                    />
+                    <p className="mt-1 text-[10px] font-sans text-[#6B6B6B] uppercase tracking-wider">
+                        Comma-separated. Max 12 tags.
+                    </p>
+                    {tagPreview.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {tagPreview.map((tag) => (
+                                <span
+                                    key={tag}
+                                    className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-[#E0E0E0] bg-[#F8F8F8] text-[#1A3A5C]"
+                                >
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 <div className="border border-[#E0E0E0] p-4 bg-[#F8F8F8]">
                     <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
                         Featured Image

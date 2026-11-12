@@ -1,28 +1,48 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log("Cleaning existing posts...");
-    await prisma.post.deleteMany();
+  console.log("Cleaning existing posts and users...");
+  await prisma.post.deleteMany();
+  await prisma.user.deleteMany();
 
-    console.log("Seeding sample articles into Neon PostgreSQL...");
+  console.log("Creating default Admin Author...");
+  const adminEmail = "niranjanghatule17@gmail.com";
+  const defaultPassword = "AdminPassword123!";
+  const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-    await prisma.post.create({
-        data: {
-            slug: "todays-top-brokerage-calls-goldman-sachs-jpmorgan-citi-jefferies-nomura",
-            title: "Today's Top Brokerage Calls: Goldman Sachs, JPMorgan, Citi, Jefferies and Nomura Upgrade Stocks; Check Target Prices",
-            summary: "Today's brokerage reports: Goldman Sachs, JPMorgan, Citi, Jefferies and Nomura revise ratings and target prices for Amagi Media, Thermax, Honasa, Voltas and more.",
-            category: "FINANCE",
-            location: "MUMBAI",
-            author: "THE SENSEXNIFTY DESK",
-            imageUrl: "/brokerage-calls.jpg",
-            imageCaption: "Global brokerages issue fresh targets following Q2FY27 earnings reports. Photo: SensexNifty",
-            isTopStory: true,
-            isBreaking: false,
-            status: "PUBLISHED",
-            publishedAt: new Date(),
-            content: `
+  const admin = await prisma.user.create({
+    data: {
+      name: "Niranjan Ghatule",
+      email: adminEmail,
+      password: hashedPassword,
+      role: "Editor-in-Chief",
+      bio: "Founder and Chief Editor at SensexNifty, covering markets, finance, and global geopolitical strategy.",
+      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
+    },
+  });
+
+  console.log(`[Seed] Created Admin User: ${admin.email}`);
+  console.log(`[Seed] Initial Password: ${defaultPassword}`);
+
+  console.log("Seeding sample articles into Neon PostgreSQL...");
+
+  await prisma.post.create({
+    data: {
+      slug: "todays-top-brokerage-calls-goldman-sachs-jpmorgan-citi-jefferies-nomura",
+      title: "Today's Top Brokerage Calls: Goldman Sachs, JPMorgan, Citi, Jefferies and Nomura Upgrade Stocks; Check Target Prices",
+      summary: "Today's brokerage reports: Goldman Sachs, JPMorgan, Citi, Jefferies and Nomura revise ratings and target prices for Amagi Media, Thermax, Honasa, Voltas and more.",
+      category: "FINANCE",
+      location: "MUMBAI",
+      authorId: admin.id,
+      imageUrl: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=1200",
+      isTopStory: true,
+      status: "PUBLISHED",
+      tags: ["brokerage", "goldmansachs", "jpmorgan", "stocks", "sensex", "nifty"],
+      publishedAt: new Date(),
+      content: `
 Indian stock market investors are tracking several important brokerage reports on November 9, 2026, as leading global and domestic brokerages have released their latest recommendations following the Q2FY27 earnings season.
 
 Goldman Sachs, JPMorgan, Jefferies, Citi, Kotak Institutional Equities and Nomura have issued fresh ratings and target price revisions across multiple sectors, including media, engineering, consumer goods, defence electronics, telecommunications, metals, power and restaurants.
@@ -79,65 +99,71 @@ Goldman Sachs maintained a Neutral rating on Data Patterns with a target price o
 
 > **Disclaimer:** *This article is for educational and informational purposes only. The brokerage recommendations, ratings and target prices mentioned above are based on the reports attributed to the respective research firms. This content does not constitute investment advice or a recommendation to buy, sell or hold any securities. Stock market investments are subject to market risks. Investors should conduct their own research and consult a SEBI-registered investment adviser before making investment decisions.*
 `,
-        },
-    });
+    },
+  });
 
-    await prisma.post.createMany({
-        data: [
-            {
-                slug: "us-fed-signals-cautious-monetary-path",
-                title: "US Federal Reserve signals cautious monetary path amid persistent inflation",
-                summary: "Central bank officials emphasize data dependency as inflation moderation shows signs of plateauing across key sectors.",
-                category: "USA",
-                location: "WASHINGTON",
-                author: "THE SENSEXNIFTY DESK",
-                status: "PUBLISHED",
-                publishedAt: new Date(Date.now() - 3600000),
-                content: "Central bank officials in Washington emphasize data dependency as inflation moderation shows signs of plateauing across key manufacturing and labor sectors.",
-            },
-            {
-                slug: "european-industry-weighs-cost-of-energy-transition",
-                title: "European industry weighs the cost of its next technological transition",
-                summary: "Manufacturers balance capital investments and global competitiveness as European policymakers debate industrial strategy.",
-                category: "EUROPE",
-                location: "BRUSSELS",
-                author: "THE SENSEXNIFTY DESK",
-                status: "PUBLISHED",
-                publishedAt: new Date(Date.now() - 7200000),
-                content: "Industrial leaders across Germany, France, and Belgium meet in Brussels to advocate for competitive energy subsidies amid global market pressures.",
-            },
-            {
-                slug: "tech-giants-face-stricter-eu-ai-rules",
-                title: "Digital rules put global technology ambitions under regulatory scrutiny",
-                summary: "European regulators scrutinize artificial intelligence firms to balance citizen safety with technological innovation.",
-                category: "TECHNOLOGY",
-                location: "BERLIN",
-                author: "THE SENSEXNIFTY DESK",
-                status: "PUBLISHED",
-                publishedAt: new Date(Date.now() - 86400000),
-                content: "Antitrust regulators introduce fresh guidelines regarding model training transparency and algorithmic data compliance.",
-            },
-            {
-                slug: "why-geopolitics-is-the-new-macroeconomics",
-                title: "Why Geopolitics Is Fast Becoming the Primary Driver of Stock Markets",
-                summary: "Supply chain regionalization, sanctions, and national security mandates are overriding traditional interest rate models.",
-                category: "OPINION",
-                author: "SENIOR EDITORIAL BOARD",
-                status: "PUBLISHED",
-                publishedAt: new Date(Date.now() - 172800000),
-                content: "An in-depth analysis on how central bank policies are taking a backseat to trade restrictions and defense supply chain reshoring.",
-            },
-        ],
-    });
+  await prisma.post.createMany({
+    data: [
+      {
+        slug: "us-fed-signals-cautious-monetary-path",
+        title: "US Federal Reserve signals cautious monetary path amid persistent inflation",
+        summary: "Central bank officials emphasize data dependency as inflation moderation shows signs of plateauing across key sectors.",
+        category: "USA",
+        location: "WASHINGTON",
+        authorId: admin.id,
+        status: "PUBLISHED",
+        tags: ["fed", "inflation", "usa", "economy"],
+        publishedAt: new Date(Date.now() - 3600000),
+        content: "Central bank officials in Washington emphasize data dependency as inflation moderation shows signs of plateauing across key manufacturing and labor sectors.",
+      },
+      {
+        slug: "european-industry-weighs-cost-of-energy-transition",
+        title: "European industry weighs the cost of its next technological transition",
+        summary: "Manufacturers balance capital investments and global competitiveness as European policymakers debate industrial strategy.",
+        category: "EUROPE",
+        location: "BRUSSELS",
+        authorId: admin.id,
+        status: "PUBLISHED",
+        tags: ["europe", "energy", "industry"],
+        publishedAt: new Date(Date.now() - 7200000),
+        content: "Industrial leaders across Germany, France, and Belgium meet in Brussels to advocate for competitive energy subsidies amid global market pressures.",
+      },
+      {
+        slug: "tech-giants-face-stricter-eu-ai-rules",
+        title: "Digital rules put global technology ambitions under regulatory scrutiny",
+        summary: "European regulators scrutinize artificial intelligence firms to balance citizen safety with technological innovation.",
+        category: "TECHNOLOGY",
+        location: "BERLIN",
+        authorId: admin.id,
+        status: "PUBLISHED",
+        tags: ["tech", "ai", "regulation"],
+        publishedAt: new Date(Date.now() - 86400000),
+        content: "Antitrust regulators introduce fresh guidelines regarding model training transparency and algorithmic data compliance.",
+      },
+      {
+        slug: "why-geopolitics-is-the-new-macroeconomics",
+        title: "Why Geopolitics Is Fast Becoming the Primary Driver of Stock Markets",
+        summary: "Supply chain regionalization, sanctions, and national security mandates are overriding traditional interest rate models.",
+        category: "OPINION",
+        location: "NEW DELHI",
+        authorId: admin.id,
+        isOpinion: true,
+        status: "PUBLISHED",
+        tags: ["opinion", "geopolitics", "macroeconomics"],
+        publishedAt: new Date(Date.now() - 172800000),
+        content: "An in-depth analysis on how central bank policies are taking a backseat to trade restrictions and defense supply chain reshoring.",
+      },
+    ],
+  });
 
-    console.log("Database successfully seeded!");
+  console.log("Database successfully seeded!");
 }
 
 main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

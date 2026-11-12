@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer, NodeViewProps } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -34,7 +34,7 @@ function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps)
     const startX = useRef(0);
     const startWidth = useRef(0);
 
-    const width = node.attrs.width ? String(node.attrs.width) : "100%";
+    const width = node.attrs.width ?? "100%";
     const align = (node.attrs.align as "left" | "center" | "right") || "center";
 
     const alignContainerClass =
@@ -126,12 +126,13 @@ const ResizableImage = TiptapImage.extend({
                 default: "100%",
                 renderHTML: (attributes) => ({
                     width: attributes.width,
-                    style: `width: ${attributes.width}; height: auto;`,
+                    style: `width: ${typeof attributes.width === "number" ? `${attributes.width}px` : attributes.width}; height: auto;`,
                 }),
-                parseHTML: (element) =>
-                    element.getAttribute("width") ||
-                    (element as HTMLElement).style.width ||
-                    "100%",
+                parseHTML: (element) => {
+                    const width = element.getAttribute("width") || element.style.width;
+                    if (!width) return "100%";
+                    return /^\d+$/.test(width) ? Number(width) : width;
+                },
             },
             align: {
                 default: "center",
@@ -152,12 +153,12 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
 
-    const editor = useEditor({
-        extensions: [
-            StarterKit,
+    const extensions = useMemo(
+        () => [
+            StarterKit.configure({ link: false }),
             Link.configure({
                 openOnClick: false,
-                autolink: true,
+                autolink: false,
                 linkOnPaste: true,
                 HTMLAttributes: {
                     class:
@@ -171,6 +172,11 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
                 allowBase64: false,
             }),
         ],
+        []
+    );
+
+    const editor = useEditor({
+        extensions,
         content: value || "",
         immediatelyRender: false,
         onUpdate: ({ editor }) => {
@@ -238,7 +244,7 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
             editor
                 .chain()
                 .focus()
-                .setImage({ src: data.url, width: "640px", align: "center" })
+                .setImage({ src: data.url, width: 640 })
                 .run();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : "Failed to upload inline image.";
@@ -349,8 +355,8 @@ export default function TipTapEditor({ value, onChange }: TipTapEditorProps) {
                                         .run()
                                 }
                                 className={`px-2 py-1.5 text-[10px] font-bold rounded border ${currentAlign === alignOpt.val
-                                        ? "bg-[#1A3A5C] text-white border-[#1A3A5C]"
-                                        : "bg-white text-[#1A1A1A] border-[#E0E0E0] hover:bg-gray-100"
+                                    ? "bg-[#1A3A5C] text-white border-[#1A3A5C]"
+                                    : "bg-white text-[#1A1A1A] border-[#E0E0E0] hover:bg-gray-100"
                                     }`}
                             >
                                 {alignOpt.label}

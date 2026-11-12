@@ -12,7 +12,6 @@ export default function NewPostPage() {
     const [loading, setLoading] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
 
-    // Form State
     const [title, setTitle] = useState("");
     const [category, setCategory] = useState("FINANCE");
     const [location, setLocation] = useState("MUMBAI");
@@ -21,8 +20,8 @@ export default function NewPostPage() {
     const [imageUrl, setImageUrl] = useState("");
     const [imageCaption, setImageCaption] = useState("");
     const [isTopStory, setIsTopStory] = useState(false);
+    const [tags, setTags] = useState("");
 
-    // Handle Cover Image File Upload
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -51,7 +50,6 @@ export default function NewPostPage() {
         }
     };
 
-    // Handle Submit / Publish
     const handleSubmit = async (e: React.FormEvent, status: "PUBLISHED" | "DRAFT") => {
         e.preventDefault();
         setLoading(true);
@@ -70,14 +68,16 @@ export default function NewPostPage() {
                     imageCaption,
                     isTopStory,
                     status,
+                    tags,
                 }),
             });
 
             if (res.ok) {
-                alert("Post published successfully!");
+                alert(status === "DRAFT" ? "Draft saved." : "Post published successfully!");
                 router.push("/admin");
             } else {
-                alert("Failed to publish post.");
+                const data = await res.json().catch(() => ({}));
+                alert(data.error || "Failed to publish post.");
             }
         } catch (error) {
             console.error(error);
@@ -87,9 +87,13 @@ export default function NewPostPage() {
         }
     };
 
+    const tagPreview = tags
+        .split(",")
+        .map((t) => t.trim().replace(/^#/, ""))
+        .filter(Boolean);
+
     return (
         <div className="max-w-4xl mx-auto pb-16 font-sans">
-            {/* Header Bar */}
             <div className="flex items-center justify-between border-b border-[#E0E0E0] pb-4 mb-8">
                 <button
                     onClick={() => router.back()}
@@ -105,7 +109,6 @@ export default function NewPostPage() {
             </div>
 
             <form onSubmit={(e) => handleSubmit(e, "PUBLISHED")} className="space-y-8">
-                {/* 1. Cover Image Upload (Instagram-style Box) */}
                 <div className="bg-white border border-[#E0E0E0] p-6">
                     <label className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
                         1. Cover Image (Auto-Fits Newspaper Cards & Hero)
@@ -113,7 +116,13 @@ export default function NewPostPage() {
 
                     {imageUrl ? (
                         <div className="relative aspect-[16/9] bg-[#F5F5F0] border border-[#E0E0E0] overflow-hidden mb-4">
-                            <Image src={imageUrl} alt="Cover Preview" fill sizes="(max-width: 768px) 100vw, 896px" className="object-cover" />
+                            <Image
+                                src={imageUrl}
+                                alt="Cover Preview"
+                                fill
+                                sizes="(max-width: 768px) 100vw, 896px"
+                                className="object-cover"
+                            />
                             <button
                                 type="button"
                                 onClick={() => setImageUrl("")}
@@ -126,7 +135,9 @@ export default function NewPostPage() {
                         <div className="border-2 border-dashed border-[#E0E0E0] bg-[#F8F8F8] p-8 text-center">
                             <Upload className="w-8 h-8 text-[#A0A0A0] mx-auto mb-2" />
                             <p className="text-xs text-[#6B6B6B] uppercase tracking-wider font-semibold mb-3">
-                                {uploadingImage ? "Uploading to Cloud..." : "Drag & drop cover image or click to browse"}
+                                {uploadingImage
+                                    ? "Uploading to Cloud..."
+                                    : "Drag & drop cover image or click to browse"}
                             </p>
                             <input
                                 type="file"
@@ -154,7 +165,6 @@ export default function NewPostPage() {
                     </div>
                 </div>
 
-                {/* 2. Headline & Metadata */}
                 <div className="bg-white border border-[#E0E0E0] p-6 space-y-6">
                     <div>
                         <label className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
@@ -214,17 +224,44 @@ export default function NewPostPage() {
                             className="w-full text-sm p-3 border border-[#E0E0E0] bg-[#F8F8F8] text-[#1A1A1A] focus:outline-none focus:border-[#1A3A5C]"
                         />
                     </div>
+
+                    {/* Phase 2: Tags */}
+                    <div>
+                        <label className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
+                            4. Hashtags / SEO Tags
+                        </label>
+                        <input
+                            type="text"
+                            value={tags}
+                            onChange={(e) => setTags(e.target.value)}
+                            placeholder="e.g. Russia, Europe, Markets, Sensex, Nifty"
+                            className="w-full text-sm p-3 border border-[#E0E0E0] bg-[#F8F8F8] text-[#1A1A1A] focus:outline-none focus:border-[#1A3A5C]"
+                        />
+                        <p className="mt-1.5 text-[10px] text-[#6B6B6B] uppercase tracking-wider">
+                            Comma-separated. Used for SEO reach and article tag pills. Max 12.
+                        </p>
+                        {tagPreview.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {tagPreview.map((tag) => (
+                                    <span
+                                        key={tag}
+                                        className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-[#E0E0E0] bg-white text-[#1A3A5C]"
+                                    >
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* 3. Full Story Content */}
                 <div className="bg-white border border-[#E0E0E0] p-6">
                     <label className="block text-xs font-bold text-[#1A1A1A] uppercase tracking-wider mb-2">
-                        4. Full Article Content *
+                        5. Full Article Content *
                     </label>
                     <TipTapEditor value={content} onChange={setContent} />
                 </div>
 
-                {/* 5. Additional Options */}
                 <div className="bg-white border border-[#E0E0E0] p-6">
                     <label className="flex items-center space-x-3 cursor-pointer">
                         <input
@@ -238,7 +275,6 @@ export default function NewPostPage() {
                         </span>
                     </label>
 
-                    {/* Actions */}
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
                         <button
                             type="button"

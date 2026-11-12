@@ -10,6 +10,7 @@ export interface Post {
     category: Category;
     location?: string | null;
     author: string;
+    tags?: string[];
     imageUrl?: string | null;
     imageCaption?: string | null;
     pdfUrl?: string | null;
