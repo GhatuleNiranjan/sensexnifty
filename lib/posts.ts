@@ -17,13 +17,13 @@ function normalizePost(post: any): Post {
     ...post,
     author: post.author
       ? {
-          id: post.author.id,
-          name: post.author.name,
-          email: post.author.email,
-          image: post.author.image || DEFAULT_AUTHOR.image,
-          role: post.author.role || DEFAULT_AUTHOR.role,
-          bio: post.author.bio || DEFAULT_AUTHOR.bio,
-        }
+        id: post.author.id,
+        name: post.author.name,
+        email: post.author.email,
+        image: post.author.image || DEFAULT_AUTHOR.image,
+        role: post.author.role || DEFAULT_AUTHOR.role,
+        bio: post.author.bio || DEFAULT_AUTHOR.bio,
+      }
       : DEFAULT_AUTHOR,
     tags: Array.isArray(post.tags) ? post.tags : [],
   };
@@ -116,7 +116,6 @@ export async function getAllPosts(): Promise<Post[]> {
   return posts.map(normalizePost);
 }
 
-/** Full-text style search across title, summary, content, tags, category, location, author */
 export async function searchPosts(
   query: string,
   limit = 30
@@ -149,7 +148,6 @@ export async function searchPosts(
   return posts.map(normalizePost);
 }
 
-/** Search by exact hashtag/tag */
 export async function getPostsByTag(
   tag: string,
   limit = 30
@@ -170,7 +168,6 @@ export async function getPostsByTag(
   return posts.map(normalizePost);
 }
 
-/** Archive: all published posts (optionally filtered by year/month) */
 export async function getArchivePosts(options?: {
   year?: number;
   month?: number;
@@ -194,11 +191,11 @@ export async function getArchivePosts(options?: {
       status: "PUBLISHED",
       ...(gte && lt
         ? {
-            publishedAt: {
-              gte,
-              lt,
-            },
-          }
+          publishedAt: {
+            gte,
+            lt,
+          },
+        }
         : {}),
     },
     include: { author: true },
@@ -209,6 +206,56 @@ export async function getArchivePosts(options?: {
   return posts.map(normalizePost);
 }
 
-// Compatibility aliases
+/** Extract distinct years and months from database */
+export async function getArchiveTree(): Promise<
+  { year: number; months: { monthNumber: number; monthName: string; count: number }[] }[]
+> {
+  const posts = await db.post.findMany({
+    where: { status: "PUBLISHED" },
+    select: { publishedAt: true, createdAt: true },
+    orderBy: { publishedAt: "desc" },
+  });
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const map = new Map<number, Map<number, number>>();
+
+  posts.forEach((p) => {
+    const d = p.publishedAt || p.createdAt;
+    if (!d) return;
+    const date = new Date(d);
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1; // 1-12
+
+    if (!map.has(y)) {
+      map.set(y, new Map());
+    }
+    const yearMap = map.get(y)!;
+    yearMap.set(m, (yearMap.get(m) || 0) + 1);
+  });
+
+  const tree: { year: number; months: { monthNumber: number; monthName: string; count: number }[] }[] = [];
+
+  const sortedYears = Array.from(map.keys()).sort((a, b) => b - a);
+
+  sortedYears.forEach((year) => {
+    const yearMap = map.get(year)!;
+    const sortedMonths = Array.from(yearMap.keys()).sort((a, b) => b - a);
+
+    const months = sortedMonths.map((m) => ({
+      monthNumber: m,
+      monthName: monthNames[m - 1],
+      count: yearMap.get(m)!,
+    }));
+
+    tree.push({ year, months });
+  });
+
+  return tree;
+}
+
 export const getArticlesByCategory = getCategoryPosts;
 export const getLatestArticles = getLatestPosts;
