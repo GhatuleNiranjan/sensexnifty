@@ -34,4 +34,12 @@ export type CategorySlug =
   | "russia"
   | "technology"
   | "opinion"
-  | "finance";
+  | "finance"
+  | "USA"
+  | "EUROPE"
+  | "RUSSIA"
+  | "TECHNOLOGY"
+  | "OPINION"
+  | "FINANCE";
+
+export type Category = CategorySlug;

@@ -7,6 +7,7 @@ import EditionStrip from "@/components/public/EditionStrip";
 import Footer from "@/components/public/Footer";
 import SearchBar from "@/components/public/SearchBar";
 import { searchPosts, getPostsByTag } from "@/lib/posts";
+import { Post } from "@/types";
 import type { Metadata } from "next";
 
 export const revalidate = 0;
@@ -44,7 +45,7 @@ export default async function SearchPage({
     const query = (q || "").trim();
     const tagQuery = (tag || "").trim().replace(/^#/, "");
 
-    let posts = [];
+    let posts: Post[] = [];
     let mode: "empty" | "query" | "tag" = "empty";
 
     if (tagQuery) {
@@ -178,7 +179,7 @@ export default async function SearchPage({
 
                                         {post.tags && post.tags.length > 0 && (
                                             <div className="flex flex-wrap gap-1.5 pt-1">
-                                                {post.tags.slice(0, 4).map((t) => (
+                                                {post.tags.slice(0, 4).map((t: string) => (
                                                     <Link
                                                         key={t}
                                                         href={`/search?tag=${encodeURIComponent(t)}`}

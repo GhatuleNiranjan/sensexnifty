@@ -1,18 +1,27 @@
 import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-export default withAuth({
-    pages: {
-        signIn: "/admin/login",
+export default withAuth(
+    function middleware(req) {
+        return NextResponse.next();
     },
-});
+    {
+        callbacks: {
+            authorized: ({ token, req }) => {
+                // Exclude /admin/login from protection
+                if (req.nextUrl.pathname === "/admin/login") {
+                    return true;
+                }
+                // Protect all other /admin routes
+                return !!token;
+            },
+        },
+        pages: {
+            signIn: "/admin/login",
+        },
+    }
+);
 
 export const config = {
-    // Protect all /admin routes (except login pages) and API routes
-    matcher: [
-        "/admin",
-        "/admin/new",
-        "/admin/edit/:path*",
-        "/api/posts/:path*",
-        "/api/upload/:path*"
-    ],
+    matcher: ["/admin/:path*"],
 };
