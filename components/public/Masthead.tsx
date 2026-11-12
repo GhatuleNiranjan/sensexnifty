@@ -1,23 +1,23 @@
 import Link from "next/link";
-import { SITE_CONFIG } from "@/lib/constants";
 
 export default function Masthead() {
     return (
-        <header className="py-8 text-center border-b border-[#E0E0E0] bg-white">
-            <div className="max-w-7xl mx-auto px-4">
-                <Link href="/" className="inline-block">
-                    <h1
-                        className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight text-[#1A1A1A] uppercase"
-                        style={{
-                            fontFamily: "var(--font-playfair), Georgia, serif",
-                            transform: "scaleY(1.05)",
-                        }}
-                    >
-                        {SITE_CONFIG.name}
+        <header className="bg-white py-6 sm:py-8 border-b border-[#E0E0E0]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#6B6B6B] border-b border-[#E0E0E0] pb-2 mb-4">
+                    <span>News Behind The Numbers</span>
+                    <span>Facts First. Context Always.</span>
+                    <span className="hidden sm:inline">Daily Briefing →</span>
+                </div>
+
+                <Link href="/" className="inline-block group">
+                    <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[#1A1A1A] uppercase group-hover:opacity-90 transition-opacity">
+                        SENSEXNIFTY
                     </h1>
                 </Link>
-                <p className="mt-2 text-xs md:text-sm tracking-[0.25em] text-[#6B6B6B] uppercase font-medium">
-                    {SITE_CONFIG.tagline}
+
+                <p className="font-serif italic text-xs sm:text-sm text-[#6B6B6B] tracking-widest uppercase">
+                    News Behind The Numbers
                 </p>
             </div>
         </header>

@@ -1,17 +1,18 @@
-"use client";
-
-import { useSyncExternalStore } from "react";
-
 export default function EditionStrip() {
-    const formattedDate = useSyncExternalStore(() => () => {}, () => new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "Asia/Kolkata" }), () => "");
-
     return (
-        <div className="border-b border-[#E0E0E0] py-2 px-4 bg-white text-[10px] sm:text-[11px] font-sans text-[#6B6B6B] uppercase tracking-wider">
-            <div className="max-w-7xl mx-auto flex justify-between items-center min-h-[18px]">
-                <span>
-                    {formattedDate ? `${formattedDate} · GLOBAL FINANCIAL EDITION` : "GLOBAL FINANCIAL EDITION"}
-                </span>
-                <span className="hidden sm:inline">UPDATED THROUGHOUT THE DAY</span>
+        <div className="bg-[#F8F8F8] border-b border-[#E0E0E0] text-[10px] font-sans font-semibold uppercase tracking-widest text-[#6B6B6B] py-1.5">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span>Markets Open</span>
+                    <span>•</span>
+                    <span>BSE Sensex & Nifty 50 Real-Time Coverage</span>
+                </div>
+                <div className="hidden md:flex items-center gap-4">
+                    <span>Independent Journalism</span>
+                    <span>•</span>
+                    <span>No Paywalls</span>
+                </div>
             </div>
         </div>
     );

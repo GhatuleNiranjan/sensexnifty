@@ -1,24 +1,37 @@
-export type Category = "USA" | "EUROPE" | "RUSSIA" | "TECHNOLOGY" | "OPINION" | "FINANCE";
-export type PostStatus = "DRAFT" | "PUBLISHED";
+export interface Author {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  role?: string | null;
+  bio?: string | null;
+}
 
 export interface Post {
-    id: string;
-    slug: string;
-    title: string;
-    summary: string;
-    content: string;
-    category: Category;
-    location?: string | null;
-    author: string;
-    tags?: string[];
-    imageUrl?: string | null;
-    imageCaption?: string | null;
-    pdfUrl?: string | null;
-    isTopStory: boolean;
-    isBreaking: boolean;
-    status: PostStatus;
-    views: number;
-    publishedAt: Date | string;
-    createdAt: Date | string;
-    updatedAt: Date | string;
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  category: string;
+  imageUrl?: string | null;
+  authorId?: string | null;
+  author?: Author | null;
+  location?: string | null;
+  isTopStory: boolean;
+  isSpotlight: boolean;
+  isOpinion: boolean;
+  status: string;
+  tags?: string[];
+  publishedAt?: string | Date | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
+
+export type CategorySlug =
+  | "usa"
+  | "europe"
+  | "russia"
+  | "technology"
+  | "opinion"
+  | "finance";

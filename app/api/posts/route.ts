@@ -1,101 +1,101 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { db } from "@/lib/db";
-
-function normalizeTags(input: unknown): string[] {
-    if (!input) return [];
-    const raw = Array.isArray(input) ? input.join(",") : String(input);
-    const seen = new Set<string>();
-    const tags: string[] = [];
-
-    for (const part of raw.split(",")) {
-        const cleaned = part.trim().replace(/^#/, "").replace(/\s+/g, " ");
-        if (!cleaned) continue;
-        const key = cleaned.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        tags.push(cleaned);
-    }
-
-    return tags.slice(0, 12);
-}
 
 export async function GET() {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json(await db.post.findMany({ orderBy: { publishedAt: "desc" } }));
+  try {
+    const posts = await db.post.findMany({
+      include: { author: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(posts);
+  } catch (error) {
+    console.error("GET /api/posts error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch posts" },
+      { status: 500 }
+    );
+  }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
+  try {
     const session = await getServerSession(authOptions);
-
-    if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please log in." },
+        { status: 401 }
+      );
     }
 
-    try {
-        const body = await request.json();
-        const {
-            title,
-            summary,
-            content,
-            category,
-            location,
-            imageUrl,
-            imageCaption,
-            pdfUrl,
-            isTopStory,
-            isBreaking,
-            status,
-            tags,
-        } = body;
+    const body = await req.json();
+    const {
+      title,
+      slug,
+      summary,
+      content,
+      category,
+      imageUrl,
+      location,
+      isTopStory,
+      isSpotlight,
+      isOpinion,
+      status,
+      tags,
+    } = body;
 
-        if (
-            !title?.trim() ||
-            (status !== "DRAFT" && (!content || !content.replace(/<[^>]*>/g, "").trim()))
-        ) {
-            return NextResponse.json(
-                { error: "Enter a title and full article text before publishing." },
-                { status: 400 }
-            );
-        }
-
-        const slug =
-            title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/(^-|-$)+/g, "") + `-${Date.now().toString().slice(-4)}`;
-
-        if (isTopStory) {
-            await db.post.updateMany({
-                where: { isTopStory: true },
-                data: { isTopStory: false },
-            });
-        }
-
-        const newPost = await db.post.create({
-            data: {
-                slug,
-                title,
-                summary: summary || "",
-                content: content || "",
-                category,
-                location: location || null,
-                tags: normalizeTags(tags),
-                imageUrl: imageUrl || null,
-                imageCaption: imageCaption || null,
-                pdfUrl: pdfUrl || null,
-                isTopStory: Boolean(isTopStory),
-                isBreaking: Boolean(isBreaking),
-                status: status || "PUBLISHED",
-                publishedAt: new Date(),
-            },
-        });
-
-        return NextResponse.json(newPost);
-    } catch (error) {
-        console.error("Create Post Error:", error);
-        return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+    if (!title || !content || !category) {
+      return NextResponse.json(
+        { error: "Title, content, and category are required." },
+        { status: 400 }
+      );
     }
+
+    const generatedSlug =
+      slug ||
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+
+    let parsedTags: string[] = [];
+    if (Array.isArray(tags)) {
+      parsedTags = tags.map((t: string) => t.trim().replace(/^#/, "")).filter(Boolean);
+    } else if (typeof tags === "string") {
+      parsedTags = tags
+        .split(",")
+        .map((t: string) => t.trim().replace(/^#/, ""))
+        .filter(Boolean);
+    }
+    parsedTags = parsedTags.slice(0, 12);
+
+    const post = await db.post.create({
+      data: {
+        title,
+        slug: generatedSlug,
+        summary: summary || "",
+        content,
+        category: category.toUpperCase(),
+        imageUrl: imageUrl || null,
+        location: location || "NEW DELHI",
+        isTopStory: Boolean(isTopStory),
+        isSpotlight: Boolean(isSpotlight),
+        isOpinion: Boolean(isOpinion),
+        status: status || "PUBLISHED",
+        tags: parsedTags,
+        authorId: session.user.id,
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
+      },
+      include: { author: true },
+    });
+
+    return NextResponse.json(post, { status: 201 });
+  } catch (error: any) {
+    console.error("POST /api/posts error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to create post" },
+      { status: 500 }
+    );
+  }
 }

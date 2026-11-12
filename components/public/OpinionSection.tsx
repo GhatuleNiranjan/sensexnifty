@@ -1,59 +1,82 @@
-import Link from "next/link";
 import { Post } from "@/types";
+import Link from "next/link";
 
 interface OpinionSectionProps {
-    articles: Post[];
+  opinions: Post[];
 }
 
-export default function OpinionSection({ articles }: OpinionSectionProps) {
-    return (
-        <section className="my-12 py-10 px-4 md:px-8 bg-[#F8F8F8] border-y border-[#E0E0E0]">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-baseline mb-8 border-b border-[#E0E0E0] pb-3">
-                    <h2
-                        className="text-xl font-extrabold uppercase text-[#1A1A1A] tracking-wide"
-                        style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                    >
-                        Opinion & Perspective
-                    </h2>
-                    <Link
-                        href="/opinion"
-                        className="text-xs font-bold text-[#1A3A5C] hover:underline uppercase tracking-wider"
-                    >
-                        ALL ESSAYS →
-                    </Link>
-                </div>
+export default function OpinionSection({ opinions }: OpinionSectionProps) {
+  if (!opinions || opinions.length === 0) return null;
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {articles.map((item: Post) => (
-                        <div
-                            key={item.id}
-                            className="group p-6 bg-white border border-[#E0E0E0] border-t-2 border-t-[#6B1C2A] shadow-sm hover:bg-[#FAF9F6] transition-colors flex flex-col justify-between"
-                        >
-                            <div>
-                                <span className="text-[10px] font-bold tracking-widest text-[#6B1C2A] uppercase">
-                                    EDITORIAL COLUMN
-                                </span>
-                                <Link href={`/${item.category.toLowerCase()}/${item.slug}`}>
-                                    <h3
-                                        className="text-lg md:text-xl font-bold text-[#1A1A1A] mt-2 leading-snug group-hover:text-[#1A3A5C] transition-colors"
-                                        style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                                    >
-                                        &ldquo;{item.title}&rdquo;
-                                    </h3>
-                                </Link>
-                                <p className="mt-3 text-xs md:text-sm text-[#6B6B6B] leading-relaxed italic">
-                                    {item.summary}
-                                </p>
-                            </div>
-                            <div className="mt-6 pt-3 border-t border-[#E0E0E0] flex justify-between items-center text-[10px] font-bold text-[#1A1A1A] uppercase tracking-wider">
-                                <span>BY {item.author || "THE SENSEXNIFTY DESK"}</span>
-                                <span className="text-[#6B1C2A]">OPINION</span>
-                            </div>
-                        </div>
-                    ))}
+  return (
+    <section className="my-12 pt-8 border-t-2 border-[#1A1A1A] bg-[#F8F8F8] p-6 sm:p-8 border border-[#E0E0E0]">
+      <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#E0E0E0]">
+        <div>
+          <span className="text-[10px] font-sans font-extrabold uppercase tracking-[0.25em] text-[#6B1C2A]">
+            EDITORIAL & ESSAYS
+          </span>
+          <h2 className="font-serif text-2xl font-extrabold text-[#1A1A1A] tracking-tight">
+            OPINION & PERSPECTIVE
+          </h2>
+        </div>
+        <Link
+          href="/opinion"
+          className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A3A5C] hover:underline"
+        >
+          All Essays →
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {opinions.map((opinion) => {
+          const author = opinion.author || {
+            name: "The SensexNifty Desk",
+            role: "Editorial Desk",
+            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
+          };
+
+          return (
+            <article
+              key={opinion.id}
+              className="bg-white p-5 border border-[#E0E0E0] flex flex-col justify-between hover:border-[#1A1A1A] transition-colors"
+            >
+              <div className="space-y-3">
+                <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B6B6B]">
+                  Editorial Column
+                </span>
+
+                <Link href={`/${opinion.category.toLowerCase()}/${opinion.slug}`}>
+                  <h3 className="font-serif text-lg font-bold text-[#1A1A1A] leading-snug hover:text-[#1A3A5C] transition-colors">
+                    &ldquo;{opinion.title}&rdquo;
+                  </h3>
+                </Link>
+
+                {opinion.summary && (
+                  <p className="font-sans text-xs text-[#6B6B6B] italic leading-relaxed line-clamp-3">
+                    {opinion.summary}
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#E0E0E0] flex items-center gap-3">
+                <img
+                  src={author.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300"}
+                  alt={author.name}
+                  className="w-8 h-8 rounded-full object-cover border border-[#E0E0E0]"
+                />
+                <div className="overflow-hidden">
+                  <p className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] truncate">
+                    BY {author.name}
+                  </p>
+                  <p className="text-[10px] font-sans text-[#6B6B6B] truncate">
+                    {author.role || "Columnist"}
+                  </p>
                 </div>
-            </div>
-        </section>
-    );
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
 }

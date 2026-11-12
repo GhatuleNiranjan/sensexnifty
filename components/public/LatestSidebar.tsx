@@ -1,54 +1,53 @@
-import Link from "next/link";
 import { Post } from "@/types";
-import { formatNewsDate } from "@/lib/date";
+import Link from "next/link";
 
 interface LatestSidebarProps {
-    articles: Post[];
+  posts: Post[];
 }
 
-export default function LatestSidebar({ articles }: LatestSidebarProps) {
-    return (
-        <aside className="lg:pl-8">
-            <div className="border-b border-[#1A1A1A] pb-2 mb-6">
-                <h3
-                    className="text-xl font-bold text-[#1A1A1A]"
-                    style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                >
-                    The latest
+export default function LatestSidebar({ posts }: LatestSidebarProps) {
+  if (!posts || posts.length === 0) return null;
+
+  return (
+    <aside className="space-y-6">
+      <div className="pb-2 border-b-2 border-[#1A1A1A]">
+        <h2 className="font-serif text-xl font-extrabold tracking-tight text-[#1A1A1A]">
+          The Latest
+        </h2>
+      </div>
+
+      <div className="divide-y divide-[#E0E0E0]">
+        {posts.map((post) => {
+          const publishedTime = post.publishedAt
+            ? new Date(post.publishedAt).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }) + " IST"
+            : "TODAY";
+
+          return (
+            <article key={post.id} className="py-4 first:pt-0 last:pb-0 space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] font-sans font-bold uppercase tracking-wider">
+                <span className="text-[#1A3A5C]">{post.category}</span>
+                <span className="text-[#6B6B6B]">{publishedTime}</span>
+              </div>
+
+              <Link href={`/${post.category.toLowerCase()}/${post.slug}`}>
+                <h3 className="font-serif text-sm font-bold text-[#1A1A1A] leading-snug hover:text-[#1A3A5C] transition-colors">
+                  {post.title}
                 </h3>
-            </div>
+              </Link>
 
-            <div className="divide-y divide-[#E0E0E0]">
-                {articles.map((item: Post) => (
-                    <article key={item.id} className="py-5 first:pt-0 last:pb-0 group">
-                        <div className="text-[10px] font-bold tracking-widest text-[#6B6B6B] uppercase mb-1.5 flex items-center justify-between gap-2">
-                            <span className="text-[#1A3A5C]">{item.category}</span>
-                            <span className="text-right">{formatNewsDate(item.publishedAt)}</span>
-                        </div>
-
-                        <Link href={`/${item.category.toLowerCase()}/${item.slug}`}>
-                            <h4
-                                className="text-base font-bold text-[#1A1A1A] leading-snug group-hover:text-[#1A3A5C] transition-colors"
-                                style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
-                            >
-                                {item.title}
-                            </h4>
-                        </Link>
-
-                        <p
-                            className="mt-2 text-xs text-[#6B6B6B] leading-relaxed"
-                            style={{
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                            }}
-                        >
-                            {item.summary}
-                        </p>
-                    </article>
-                ))}
-            </div>
-        </aside>
-    );
+              {post.summary && (
+                <p className="font-sans text-xs text-[#6B6B6B] line-clamp-2 leading-relaxed">
+                  {post.summary}
+                </p>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </aside>
+  );
 }

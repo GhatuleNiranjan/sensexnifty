@@ -1,69 +1,62 @@
 import TopBar from "@/components/public/TopBar";
 import Masthead from "@/components/public/Masthead";
-import Navigation from "@/components/public/Navigation";
+import CategoryNav from "@/components/public/CategoryNav";
 import EditionStrip from "@/components/public/EditionStrip";
 import HeroSection from "@/components/public/HeroSection";
 import LatestSidebar from "@/components/public/LatestSidebar";
-import CategorySection from "@/components/public/CategorySection";
+import CategoryGrid from "@/components/public/CategoryGrid";
 import OpinionSection from "@/components/public/OpinionSection";
 import Footer from "@/components/public/Footer";
 
 import {
   getTopStory,
-  getLatestArticles,
-  getArticlesByCategory,
+  getSpotlightPosts,
+  getLatestPosts,
+  getCategoryPosts,
+  getOpinionPosts,
 } from "@/lib/posts";
 
 export const revalidate = 0;
 
 export default async function HomePage() {
   const topStory = await getTopStory();
-  const latestArticles = await getLatestArticles(6);
-  const financeArticles = await getArticlesByCategory("FINANCE", 3);
-  const opinionArticles = await getArticlesByCategory("OPINION", 2);
-
-  // Take the first 4 for the sidebar, and next 2 for secondary hero feature
-  const sidebarArticles = latestArticles.slice(0, 4);
-  const secondaryHeroArticles = latestArticles.slice(2, 4);
+  const spotlights = await getSpotlightPosts(2);
+  const latestPosts = await getLatestPosts(5);
+  const financePosts = await getCategoryPosts("FINANCE", 3);
+  const opinionPosts = await getOpinionPosts(3);
 
   return (
-    <main className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white text-[#1A1A1A] flex flex-col font-serif">
       <TopBar />
       <Masthead />
-      <Navigation />
+      <CategoryNav />
       <EditionStrip />
 
-      <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-[#E0E0E0] pb-8">
           <div className="lg:col-span-8">
-            {topStory && (
-              <HeroSection
-                article={topStory}
-                secondaryArticles={secondaryHeroArticles}
-              />
-            )}
+            <HeroSection topStory={topStory} spotlights={spotlights} />
           </div>
-          <div className="lg:col-span-4">
-            <LatestSidebar articles={sidebarArticles} />
+
+          <div className="lg:col-span-4 lg:border-l lg:border-[#E0E0E0] lg:pl-8">
+            <LatestSidebar posts={latestPosts} />
           </div>
         </div>
-      </section>
 
-      {financeArticles.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4">
-          <CategorySection
+        {financePosts.length > 0 && (
+          <CategoryGrid
             title="Indian Markets & Finance"
             categorySlug="finance"
-            articles={financeArticles}
+            posts={financePosts}
           />
-        </section>
-      )}
+        )}
 
-      {opinionArticles.length > 0 && (
-        <OpinionSection articles={opinionArticles} />
-      )}
+        {opinionPosts.length > 0 && (
+          <OpinionSection opinions={opinionPosts} />
+        )}
+      </main>
 
       <Footer />
-    </main>
+    </div>
   );
 }

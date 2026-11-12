@@ -44,11 +44,16 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.id;
                 token.role = (user as any).role;
                 token.picture = user.image;
+            }
+            // Handle Profile Updates without relogging
+            if (trigger === "update" && session) {
+                if (session.name) token.name = session.name;
+                if (session.image) token.picture = session.image;
             }
             return token;
         },

@@ -1,331 +1,356 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import TipTapEditor from "@/components/admin/TipTapEditor";
-import { CATEGORIES } from "@/lib/constants";
+import ImageUpload from "@/components/admin/ImageUpload";
+import { ArrowLeft, Tag, UserCheck, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
-interface EditPostPageProps {
-    params: Promise<{ id: string }>;
-}
+const CATEGORIES = ["USA", "EUROPE", "RUSSIA", "TECHNOLOGY", "OPINION", "FINANCE"];
 
-export default function EditPostPage({ params }: EditPostPageProps) {
-    const { id } = use(params);
-    const router = useRouter();
+export default function EditArticlePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const router = useRouter();
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [uploading, setUploading] = useState(false);
-    const [error, setError] = useState("");
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [summary, setSummary] = useState("");
+  const [category, setCategory] = useState("FINANCE");
+  const [location, setLocation] = useState("NEW DELHI");
+  const [imageUrl, setImageUrl] = useState("");
+  const [content, setContent] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
+  const [isTopStory, setIsTopStory] = useState(false);
+  const [isSpotlight, setIsSpotlight] = useState(false);
+  const [isOpinion, setIsOpinion] = useState(false);
+  const [status, setStatus] = useState("PUBLISHED");
+  const [authorInfo, setAuthorInfo] = useState<any>(null);
 
-    const [title, setTitle] = useState("");
-    const [summary, setSummary] = useState("");
-    const [category, setCategory] = useState("FINANCE");
-    const [location, setLocation] = useState("");
-    const [imageUrl, setImageUrl] = useState("");
-    const [imageCaption, setImageCaption] = useState("");
-    const [content, setContent] = useState("");
-    const [isTopStory, setIsTopStory] = useState(false);
-    const [tags, setTags] = useState("");
+  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        async function fetchPost() {
-            try {
-                const res = await fetch(`/api/posts/${id}`);
-                if (!res.ok) throw new Error("Failed to fetch post");
-                const data = await res.json();
-                setTitle(data.title || "");
-                setSummary(data.summary || "");
-                setCategory(data.category || "FINANCE");
-                setLocation(data.location || "");
-                setImageUrl(data.imageUrl || "");
-                setImageCaption(data.imageCaption || "");
-                setContent(data.content || "");
-                setIsTopStory(Boolean(data.isTopStory));
-                setTags(Array.isArray(data.tags) ? data.tags.join(", ") : "");
-            } catch (err: unknown) {
-                setError((err instanceof Error ? err.message : "") || "Failed to load article");
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchPost();
-    }, [id]);
+  useEffect(() => {
+    async function fetchPost() {
+      try {
+        const res = await fetch(`/api/posts/${id}`);
+        if (!res.ok) throw new Error("Failed to load article");
+        const data = await res.json();
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        setTitle(data.title || "");
+        setSlug(data.slug || "");
+        setSummary(data.summary || "");
+        setCategory(data.category || "FINANCE");
+        setLocation(data.location || "NEW DELHI");
+        setImageUrl(data.imageUrl || "");
+        setContent(data.content || "");
+        setTagsInput(Array.isArray(data.tags) ? data.tags.join(", ") : "");
+        setIsTopStory(Boolean(data.isTopStory));
+        setIsSpotlight(Boolean(data.isSpotlight));
+        setIsOpinion(Boolean(data.isOpinion));
+        setStatus(data.status || "PUBLISHED");
+        setAuthorInfo(data.author);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setFetching(false);
+      }
+    }
+    fetchPost();
+  }, [id]);
 
-        setUploading(true);
-        setError("");
+  const parsedTags = tagsInput
+    .split(",")
+    .map((t) => t.trim().replace(/^#/, ""))
+    .filter(Boolean)
+    .slice(0, 12);
 
-        try {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            });
-
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Image upload failed.");
-            setImageUrl(data.url);
-        } catch (err: unknown) {
-            alert((err instanceof Error ? err.message : "") || "Image upload failed.");
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSaving(true);
-        setError("");
-
-        try {
-            const res = await fetch(`/api/posts/${id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    title,
-                    summary,
-                    category,
-                    location,
-                    imageUrl,
-                    imageCaption,
-                    content,
-                    isTopStory,
-                    tags,
-                }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || "Failed to update article.");
-            }
-
-            router.push("/admin");
-            router.refresh();
-        } catch (err: unknown) {
-            setError((err instanceof Error ? err.message : "") || "Failed to update article.");
-            setSaving(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="max-w-4xl mx-auto p-8 font-serif text-center text-[#6B6B6B]">
-                Loading article for editing...
-            </div>
-        );
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !content) {
+      setError("Please provide both headline title and body content.");
+      return;
     }
 
-    const tagPreview = tags
-        .split(",")
-        .map((t) => t.trim().replace(/^#/, ""))
-        .filter(Boolean);
+    setLoading(true);
+    setError("");
 
+    try {
+      const res = await fetch(`/api/posts/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          slug,
+          summary,
+          category,
+          location,
+          imageUrl,
+          content,
+          tags: parsedTags,
+          isTopStory,
+          isSpotlight,
+          isOpinion,
+          status,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update article");
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  if (fetching) {
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8 font-serif">
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E0E0E0]">
-                <div>
-                    <h1 className="text-2xl font-serif font-bold text-[#1A1A1A]">Edit Article</h1>
-                    <p className="text-xs font-sans text-[#6B6B6B] mt-1">
-                        Modify fields and save changes back to the newspaper edition.
-                    </p>
-                </div>
-                <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="px-4 py-2 text-xs font-sans font-bold border border-[#E0E0E0] text-[#1A1A1A] hover:bg-gray-100 uppercase"
-                >
-                    Cancel
-                </button>
+      <div className="max-w-5xl mx-auto px-4 py-16 text-center font-serif text-sm text-[#6B6B6B]">
+        Loading article data...
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E0E0E0]">
+        <Link
+          href="/admin"
+          className="text-xs font-sans font-bold uppercase tracking-widest text-[#6B6B6B] hover:text-[#1A1A1A] flex items-center gap-2 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        </Link>
+        <span className="font-serif italic text-xs text-[#6B6B6B]">
+          Editing Dispatch #{id.slice(-6)}
+        </span>
+      </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-[#6B1C2A] text-[#6B1C2A] text-sm flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Author Display Banner */}
+      {authorInfo && (
+        <div className="mb-8 p-4 bg-white border border-[#E0E0E0] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={
+                authorInfo.image ||
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300"
+              }
+              alt={authorInfo.name}
+              className="w-10 h-10 rounded-full object-cover border border-[#E0E0E0]"
+            />
+            <div>
+              <div className="flex items-center gap-1.5 text-xs font-sans font-bold text-[#1A1A1A]">
+                <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Article Author: {authorInfo.name}</span>
+              </div>
+              <p className="text-[11px] font-sans text-[#6B6B6B]">
+                {authorInfo.role || "Editor"} — {authorInfo.email}
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-sans font-semibold uppercase tracking-wider bg-[#F5F5F0] text-[#6B6B6B] px-2.5 py-1 border border-[#E0E0E0]">
+            Linked Profile
+          </span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Headline & Category */}
+        <div className="bg-white p-6 border border-[#E0E0E0] space-y-4">
+          <div>
+            <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-2">
+              Headline Title *
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full text-lg font-serif font-bold p-3 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-2">
+                Category *
+              </label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full text-xs font-sans p-2.5 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] uppercase text-[#1A1A1A]"
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-sm font-sans">
-                    {error}
-                </div>
-            )}
+            <div>
+              <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-2">
+                Dateline Location
+              </label>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full text-xs font-sans p-2.5 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] uppercase text-[#1A1A1A]"
+              />
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                        Headline / Title *
-                    </label>
-                    <input
-                        type="text"
-                        required
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-serif text-lg"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                        Summary / Deck
-                    </label>
-                    <input
-                        type="text"
-                        value={summary}
-                        onChange={(e) => setSummary(e.target.value)}
-                        placeholder="Short summarizing line below headline..."
-                        className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-serif text-base"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                            Category *
-                        </label>
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm bg-white uppercase"
-                        >
-                            {CATEGORIES.map((cat) => (
-                                <option key={cat.slug} value={cat.name}>
-                                    {cat.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                            Location
-                        </label>
-                        <input
-                            type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm uppercase"
-                        />
-                    </div>
-                </div>
-
-                {/* Tags */}
-                <div>
-                    <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                        Hashtags / SEO Tags
-                    </label>
-                    <input
-                        type="text"
-                        value={tags}
-                        onChange={(e) => setTags(e.target.value)}
-                        placeholder="e.g. Russia, Europe, Markets, Sensex"
-                        className="w-full p-3 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-sm"
-                    />
-                    <p className="mt-1 text-[10px] font-sans text-[#6B6B6B] uppercase tracking-wider">
-                        Comma-separated. Max 12 tags.
-                    </p>
-                    {tagPreview.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {tagPreview.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border border-[#E0E0E0] bg-[#F8F8F8] text-[#1A3A5C]"
-                                >
-                                    #{tag}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className="border border-[#E0E0E0] p-4 bg-[#F8F8F8]">
-                    <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                        Featured Image
-                    </label>
-
-                    {imageUrl ? (
-                        <div className="space-y-3">
-                            <div className="relative aspect-[16/9] bg-white border border-[#E0E0E0] overflow-hidden">
-                                <Image
-                                    src={imageUrl}
-                                    alt="Cover Preview"
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 700px"
-                                    className="object-cover"
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setImageUrl("")}
-                                className="px-3 py-1.5 text-xs font-sans text-red-600 border border-red-300 bg-white hover:bg-red-50 uppercase font-semibold"
-                            >
-                                Remove Image
-                            </button>
-                        </div>
-                    ) : (
-                        <div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileUpload}
-                                disabled={uploading}
-                                className="block w-full text-xs font-sans text-[#6B6B6B] file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-[#1A3A5C] file:text-white hover:file:bg-[#142d48] cursor-pointer"
-                            />
-                            {uploading && (
-                                <p className="text-xs font-sans text-[#1A3A5C] mt-2">
-                                    Uploading to Cloudinary...
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    <div className="mt-4">
-                        <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-1">
-                            Image Caption / Credit
-                        </label>
-                        <input
-                            type="text"
-                            value={imageCaption}
-                            onChange={(e) => setImageCaption(e.target.value)}
-                            placeholder="e.g. PHOTO: REUTERS / JOHN DOE"
-                            className="w-full p-2.5 border border-[#E0E0E0] focus:border-[#1A3A5C] outline-none font-sans text-xs bg-white"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                    <input
-                        type="checkbox"
-                        id="isTopStory"
-                        checked={isTopStory}
-                        onChange={(e) => setIsTopStory(e.target.checked)}
-                        className="w-4 h-4 text-[#1A3A5C] border-[#E0E0E0] rounded focus:ring-0"
-                    />
-                    <label
-                        htmlFor="isTopStory"
-                        className="text-xs font-sans font-bold text-[#1A1A1A] uppercase cursor-pointer"
-                    >
-                        Mark as Homepage Top Story
-                    </label>
-                </div>
-
-                <div>
-                    <label className="block text-xs font-sans font-bold text-[#1A1A1A] uppercase mb-2">
-                        Full Article Content *
-                    </label>
-                    <TipTapEditor value={content} onChange={(html) => setContent(html)} />
-                </div>
-
-                <div className="pt-4 border-t border-[#E0E0E0] flex justify-end">
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-6 py-3 bg-[#1A3A5C] text-white font-sans text-xs font-bold uppercase tracking-widest hover:bg-[#142d48] transition-colors disabled:opacity-50"
-                    >
-                        {saving ? "SAVING CHANGES..." : "UPDATE ARTICLE"}
-                    </button>
-                </div>
-            </form>
+            <div>
+              <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-2">
+                URL Slug
+              </label>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="w-full text-xs font-sans p-2.5 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+              />
+            </div>
+          </div>
         </div>
-    );
+
+        {/* Summary & Tags */}
+        <div className="bg-white p-6 border border-[#E0E0E0] space-y-4">
+          <div>
+            <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-2">
+              Article Deck / Summary
+            </label>
+            <textarea
+              rows={3}
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              className="w-full text-sm font-sans p-3 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-2 flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-[#6B6B6B]" />
+              Hashtags / SEO Tags
+            </label>
+            <input
+              type="text"
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              placeholder="sensex, nifty, Indian Economy"
+              className="w-full text-xs font-sans p-2.5 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] text-[#1A1A1A]"
+            />
+            {parsedTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {parsedTags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[10px] font-sans font-semibold bg-[#F5F5F0] text-[#1A1A1A] border border-[#E0E0E0] px-2 py-0.5"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Cover Image Upload */}
+        <div className="bg-white p-6 border border-[#E0E0E0]">
+          <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">
+            Cover Image Upload
+          </label>
+          <ImageUpload value={imageUrl} onChange={(url) => setImageUrl(url)} />
+        </div>
+
+        {/* Editor */}
+        <div className="bg-white p-6 border border-[#E0E0E0]">
+          <label className="block text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A] mb-3">
+            Article Content *
+          </label>
+          <TipTapEditor content={content} onChange={(html) => setContent(html)} />
+        </div>
+
+        {/* Visibility Flags */}
+        <div className="bg-white p-6 border border-[#E0E0E0] grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isTopStory}
+              onChange={(e) => setIsTopStory(e.target.checked)}
+              className="w-4 h-4 accent-[#1A1A1A]"
+            />
+            <span className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A]">
+              Homepage Top Story
+            </span>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isSpotlight}
+              onChange={(e) => setIsSpotlight(e.target.checked)}
+              className="w-4 h-4 accent-[#1A1A1A]"
+            />
+            <span className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A]">
+              Secondary Spotlight Grid
+            </span>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isOpinion}
+              onChange={(e) => setIsOpinion(e.target.checked)}
+              className="w-4 h-4 accent-[#1A1A1A]"
+            />
+            <span className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A]">
+              Opinion / Column
+            </span>
+          </label>
+        </div>
+
+        {/* Save Controls */}
+        <div className="flex items-center justify-between pt-4 border-t border-[#E0E0E0]">
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A]">
+              Status:
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="text-xs font-sans font-semibold p-2 bg-white border border-[#E0E0E0] uppercase"
+            >
+              <option value="PUBLISHED">Published</option>
+              <option value="DRAFT">Draft</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-[#1A1A1A] hover:bg-[#333333] text-white text-xs font-sans font-bold uppercase tracking-widest py-3 px-8 transition-colors disabled:opacity-50"
+          >
+            {loading ? "Saving Changes..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
