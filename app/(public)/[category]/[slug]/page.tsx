@@ -1,219 +1,190 @@
-// app/(public)/[category]/[slug]/page.tsx
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { db } from '@/lib/db';
+import { getPostBySlug } from "@/lib/posts";
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import TopBar from "@/components/public/TopBar";
+import Masthead from "@/components/public/Masthead";
+import CategoryNav from "@/components/public/CategoryNav";
+import EditionStrip from "@/components/public/EditionStrip";
+import Footer from "@/components/public/Footer";
+import ShareButtons from "@/components/public/ShareButtons"; // <-- Import
+import { Tag } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import TopBar from '@/components/public/TopBar';
-import Masthead from '@/components/public/Masthead';
-import CategoryNav from '@/components/public/CategoryNav';
-import Footer from '@/components/public/Footer';
-
-interface PageProps {
-  params: Promise<{
-    category: string;
-    slug: string;
-  }>;
-}
-
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ category: string; slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const post = await db.post.findUnique({
-    where: { slug },
-    select: { title: true, summary: true, imageUrl: true },
-  });
+  const post = await getPostBySlug(slug);
 
-  if (!post) return { title: 'Article Not Found' };
+  if (!post) {
+    return { title: "Article Not Found | SensexNifty" };
+  }
+
+  const tagKeywords = post.tags || [];
 
   return {
-    title: post.title,
-    description: post.summary || post.title,
+    title: `${post.title} | SensexNifty`,
+    description: post.summary,
+    keywords: tagKeywords.length > 0 ? tagKeywords : [post.category, "SensexNifty", "Finance"],
     openGraph: {
       title: post.title,
-      description: post.summary || post.title,
+      description: post.summary,
+      type: "article",
+      url: `https://sensexnifty.com/${post.category.toLowerCase()}/${post.slug}`,
       images: post.imageUrl ? [{ url: post.imageUrl }] : [],
     },
   };
 }
 
-export default async function ArticlePage({ params }: PageProps) {
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ category: string; slug: string }>;
+}) {
   const { category, slug } = await params;
+  const post = await getPostBySlug(slug);
 
-  const post = await db.post.findUnique({
-    where: { slug },
-    include: { author: true },
-  });
+  if (!post) notFound();
 
-  if (!post || !post.publishedAt) {
-    notFound();
-  }
+  const publishedDate = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
+    : null;
 
-  // Word count & read time calculation (200 wpm)
-  const plainText = post.content ? post.content.replace(/<[^>]*>/g, '') : '';
-  const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
-  const readTime = Math.max(1, Math.ceil(wordCount / 200));
-
-  const formattedDate = new Date(post.createdAt).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const postUrl = `https://www.sensexnifty.com/${category.toLowerCase()}/${post.slug}`;
-
-  // Structured Data for Google News
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'NewsArticle',
-    headline: post.title,
-    description: post.summary || post.title,
-    image: post.imageUrl ? [post.imageUrl] : [],
-    datePublished: post.createdAt.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
-    author: [
-      {
-        '@type': 'Person',
-        name: post.author?.name || 'SensexNifty Editorial Board',
-      },
-    ],
-    publisher: {
-      '@type': 'Organization',
-      name: 'SensexNifty',
-      url: 'https://www.sensexnifty.com',
-    },
+  const author = post.author || {
+    name: "The SensexNifty Desk",
+    role: "Editorial Desk",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
+    bio: "Independent financial journalism covering markets, geopolitics, and global economies.",
   };
 
+  // Construct absolute URL for sharing
+  const articleUrl = `https://sensexnifty.com/${category.toLowerCase()}/${slug}`;
+
   return (
-    <>
-      {/* Structured Schema for Google News */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <div className="min-h-screen bg-white text-[#1A1A1A] flex flex-col font-serif">
+      <TopBar />
+      <Masthead />
+      <CategoryNav />
+      <EditionStrip />
 
-      <div className="min-h-screen flex flex-col bg-white">
-        {/* TOP BAR */}
-        <TopBar />
-
-        {/* BROADSHEET MASTHEAD */}
-        <Masthead />
-
-        {/* NAVIGATION BAR */}
-        <CategoryNav activeCategory={category.toUpperCase()} />
-
-        {/* ARTICLE CONTENT */}
-        <main className="flex-grow pb-20">
-          <article>
-            {/* Header */}
-            <header className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 pb-8 text-center">
-              <Link
-                href={`/${post.category.toLowerCase()}`}
-                className="inline-block text-[#1A3A5C] font-sans text-xs font-black uppercase tracking-[0.2em] mb-6 hover:text-[#0056b3] transition-colors"
-              >
-                {post.category}
-              </Link>
-
-              <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#1A1A1A] leading-[1.12] tracking-tight mb-6">
-                {post.title}
-              </h1>
-
-              {post.summary && (
-                <p className="font-serif text-lg md:text-xl text-[#6B6B6B] italic leading-relaxed max-w-3xl mx-auto">
-                  {post.summary}
-                </p>
-              )}
-            </header>
-
-            {/* Author Meta & Share Bar */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col md:flex-row md:items-center justify-between py-4 border-y border-[#E0E0E0] mb-10">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-sans text-[11px] md:text-xs font-semibold text-[#1A1A1A] uppercase tracking-widest mb-4 md:mb-0">
-                  <span>By {post.author?.name || 'Editorial Team'}</span>
-                  <span className="text-[#E0E0E0] hidden sm:inline">•</span>
-                  <time className="text-[#6B6B6B]">{formattedDate}</time>
-                  <span className="text-[#E0E0E0] hidden sm:inline">•</span>
-                  <span className="text-[#6B6B6B]">{readTime} MIN READ</span>
-                </div>
-
-                {/* Social Share Buttons */}
-                <div className="flex items-center space-x-3">
-                  <span className="text-[10px] font-sans font-bold text-[#6B6B6B] uppercase tracking-widest mr-1">
-                    Share
-                  </span>
-                  <a
-                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(post.title)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-[#F5F5F0] text-[#1A1A1A] hover:bg-[#1A3A5C] hover:text-white transition-colors border border-[#E0E0E0]"
-                    aria-label="Share on X"
-                  >
-                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                    </svg>
-                  </a>
-                  <a
-                    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-full bg-[#F5F5F0] text-[#1A1A1A] hover:bg-[#1A3A5C] hover:text-white transition-colors border border-[#E0E0E0]"
-                    aria-label="Share on LinkedIn"
-                  >
-                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.75a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8z" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Cover Image */}
-            {post.imageUrl && (
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-                <div className="relative w-full aspect-[16/9] overflow-hidden border border-[#E0E0E0] bg-[#F8F8F8]">
-                  <Image
-                    src={post.imageUrl}
-                    alt={post.title}
-                    fill
-                    priority
-                    className="object-cover"
-                    sizes="(max-width: 896px) 100vw, 896px"
-                  />
-                </div>
-              </div>
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
+        <article className="space-y-6">
+          <div className="flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-widest text-[#6B6B6B] border-b border-[#E0E0E0] pb-3">
+            <span className="text-[#1A3A5C]">{post.category}</span>
+            {post.location && (
+              <>
+                <span>•</span>
+                <span>{post.location}</span>
+              </>
             )}
+          </div>
 
-            {/* Main Rich Text Article Content */}
-            <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div
-                className="article-body font-serif text-[18px] md:text-[20px] leading-[1.8] text-[#1A1A1A]"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.12] tracking-tight text-[#1A1A1A]">
+            {post.title}
+          </h1>
 
-              {/* Hashtags */}
-              {post.tags && post.tags.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-[#E0E0E0] flex flex-wrap gap-2 items-center">
-                  <span className="text-xs font-sans font-bold text-[#1A1A1A] uppercase tracking-widest mr-2">
-                    TAGS:
-                  </span>
-                  {post.tags.map((tag: string) => (
-                    <Link
-                      key={tag}
-                      href={`/search?q=${encodeURIComponent(tag.replace('#', ''))}`}
-                      className="text-xs font-sans bg-[#F5F5F0] text-[#1A3A5C] hover:bg-[#1A3A5C] hover:text-white px-3 py-1.5 transition-colors font-medium border border-[#E0E0E0]"
-                    >
-                      {tag.startsWith('#') ? tag : `#${tag}`}
-                    </Link>
-                  ))}
+          {post.summary && (
+            <p className="font-serif italic text-lg sm:text-xl text-[#6B6B6B] leading-relaxed border-l-2 border-[#1A1A1A] pl-4 py-1">
+              {post.summary}
+            </p>
+          )}
+
+          <div className="border-y border-[#E0E0E0] py-4 my-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img
+                  src={author.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300"}
+                  alt={author.name}
+                  className="w-11 h-11 rounded-full object-cover border border-[#E0E0E0]"
+                />
+                <div>
+                  <p className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A]">{author.name}</p>
+                  <p className="text-[11px] font-sans text-[#6B6B6B]">{author.role || "Financial Journalist"}</p>
+                </div>
+              </div>
+
+              {publishedDate && (
+                <div className="text-right">
+                  <p className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B6B6B]">Published</p>
+                  <p className="text-xs font-sans text-[#1A1A1A] font-medium">{publishedDate}</p>
                 </div>
               )}
             </div>
-          </article>
-        </main>
 
-        {/* BROADSHEET FOOTER */}
-        <Footer />
-      </div>
-    </>
+            {/* Share Buttons */}
+            <ShareButtons url={articleUrl} title={post.title} />
+          </div>
+
+          {post.imageUrl && (
+            <div className="my-6">
+              <div className="relative aspect-[16/9] w-full border border-[#E0E0E0] overflow-hidden bg-[#F8F8F8]">
+                <Image
+                  src={post.imageUrl}
+                  alt={post.title}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1200px) 100vw, 900px"
+                />
+              </div>
+            </div>
+          )}
+
+          <div
+            className="prose prose-lg max-w-none text-[#1A1A1A] font-serif leading-relaxed space-y-4 pt-4 text-justify sm:text-left [&_a]:text-[#0056b3] [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-[#003d80] [&_[data-align='left']]:float-left [&_[data-align='left']]:mr-6 [&_[data-align='left']]:mb-4 [&_[data-align='right']]:float-right [&_[data-align='right']]:ml-6 [&_[data-align='right']]:mb-4 [&_[data-align='center']]:block [&_[data-align='center']]:mx-auto [&_[data-align='center']]:my-6 [&_img]:rounded-none [&_img]:border [&_img]:border-[#E0E0E0]"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+
+          {post.tags && post.tags.length > 0 && (
+            <div className="pt-8 mt-10 border-t border-[#E0E0E0]">
+              <div className="flex items-center gap-2 mb-3">
+                <Tag className="w-4 h-4 text-[#1A3A5C]" />
+                <span className="text-xs font-sans font-bold uppercase tracking-wider text-[#1A1A1A]">
+                  Related Topics & SEO Tags
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag, idx) => (
+                  <Link
+                    key={idx}
+                    href={`/search?tag=${encodeURIComponent(tag)}`}
+                    className="text-xs font-sans font-medium text-[#1A3A5C] bg-[#F5F5F0] border border-[#E0E0E0] px-3 py-1 hover:bg-[#E0E0E0] transition-colors"
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-12 p-6 bg-[#F8F8F8] border border-[#E0E0E0] flex flex-col sm:flex-row gap-5 items-start">
+            <img
+              src={author.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300"}
+              alt={author.name}
+              className="w-16 h-16 rounded-full object-cover border-2 border-[#1A1A1A] shrink-0"
+            />
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B6B6B]">About The Author</span>
+              <h3 className="font-serif text-lg font-extrabold text-[#1A1A1A]">{author.name}</h3>
+              <p className="text-xs font-sans font-semibold uppercase tracking-wider text-[#1A3A5C]">{author.role || "Financial Journalist"}</p>
+              <p className="text-xs font-sans text-[#6B6B6B] leading-relaxed pt-1">{author.bio || "Senior Editor covering markets, financial policy, and global geopolitical movements for SensexNifty."}</p>
+            </div>
+          </div>
+
+          <div className="mt-8 p-4 bg-[#F5F5F0] border-l-2 border-[#1A1A1A] text-xs font-sans text-[#6B6B6B] leading-relaxed italic">
+            <strong>Disclaimer:</strong> This article is published for informational and educational purposes only. Market analyses and opinions expressed do not constitute financial advice or investment recommendations. Always consult a certified financial advisor before making market decisions.
+          </div>
+        </article>
+      </main>
+
+      <Footer />
+    </div>
   );
 }
