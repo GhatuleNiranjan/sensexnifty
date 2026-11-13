@@ -12,7 +12,11 @@ const CATEGORIES = [
   { name: "FINANCE", slug: "finance" },
 ];
 
-export default function CategoryNav() {
+interface CategoryNavProps {
+  activeCategory?: string;
+}
+
+export default function CategoryNav({ activeCategory }: CategoryNavProps) {
   const pathname = usePathname();
 
   return (
@@ -21,7 +25,9 @@ export default function CategoryNav() {
         <ul className="flex items-center justify-between sm:justify-center sm:gap-8 overflow-x-auto py-2.5 text-xs font-sans font-bold uppercase tracking-widest no-scrollbar">
           {CATEGORIES.map((cat) => {
             const href = `/${cat.slug}`;
-            const isActive = pathname === href;
+            const isActive = activeCategory
+  ? activeCategory.toLowerCase() === cat.slug
+  : pathname === href || pathname.startsWith(`${href}/`);
             return (
               <li key={cat.slug} className="shrink-0">
                 <Link
