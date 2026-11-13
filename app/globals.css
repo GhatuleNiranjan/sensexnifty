@@ -1,4 +1,28 @@
-/* TipTap Article Body Typography */
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-source-serif: 'Source Serif 4', Georgia, serif;
+}
+
+body {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-family: var(--font-source-serif), Georgia, serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+/* TipTap & Article Body Styling */
 .article-body p {
   margin-bottom: 1.5rem;
   line-height: 1.8;
