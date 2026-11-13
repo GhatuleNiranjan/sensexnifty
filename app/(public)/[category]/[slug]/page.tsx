@@ -39,11 +39,12 @@ export default async function ArticlePage({ params }: PageProps) {
     include: { author: true },
   });
 
-  if (!post || !post.isPublished) {
+  // Check if article exists and is published
+  if (!post || !post.publishedAt) {
     notFound();
   }
 
-  // Word count & read time calculation (200 wpm)
+  // Word count & read time calculation (approx 200 words per minute)
   const plainText = post.content ? post.content.replace(/<[^>]*>/g, '') : '';
   const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
   const readTime = Math.max(1, Math.ceil(wordCount / 200));
@@ -105,7 +106,7 @@ export default async function ArticlePage({ params }: PageProps) {
               </p>
             )}
 
-            {/* Author Metadata & Share Bar */}
+            {/* Author Metadata & Social Share */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#E0E0E0]/60 text-xs font-sans text-[#6B6B6B] uppercase tracking-wider">
               <div className="flex items-center space-x-3">
                 <span className="font-semibold text-[#1A1A1A]">
@@ -117,7 +118,7 @@ export default async function ArticlePage({ params }: PageProps) {
                 <span>{readTime} MIN READ</span>
               </div>
 
-              {/* Share Buttons */}
+              {/* Inline SVG Social Share Buttons */}
               <div className="flex items-center space-x-3">
                 <a
                   href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(post.title)}`}
@@ -145,7 +146,7 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Hero / Cover Image */}
+          {/* Hero Image */}
           {post.imageUrl && (
             <div className="mb-10 overflow-hidden border border-[#E0E0E0]">
               <div className="relative w-full aspect-[16/9]">
@@ -161,7 +162,7 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Full Article Content */}
+          {/* Full Rich Text Article Content */}
           <div
             className="article-body font-serif text-[18px] leading-[1.8] text-[#1A1A1A]"
             dangerouslySetInnerHTML={{ __html: post.content }}
