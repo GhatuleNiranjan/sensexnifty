@@ -1,4 +1,3 @@
-// middleware.ts
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
@@ -8,5 +7,8 @@ export default withAuth({
 });
 
 export const config = {
-    matcher: ["/admin/:path*"], // Ensure this ONLY matches /admin pages
+    matcher: [
+        // Protect /admin dashboard and sub-pages, but EXCLUDE /admin/login
+        "/admin/((?!login$).*)",
+    ],
 };
