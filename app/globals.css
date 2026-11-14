@@ -65,5 +65,8 @@ img {
 .article-body h3 { font-size: 1.3em; font-weight: 700; line-height: 1.4; }
 .article-body blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; color: #525252; }
 .article-body hr { border: 0; border-top: 1px solid #d1d5db; margin-block: 1.5em; }
-.article-body a { color: #0056b3; text-decoration: underline; text-underline-offset: 2px; }
+.article-body a,
+.article-body a:visited { color: #0077cc; text-decoration: underline; text-underline-offset: 2px; }
+.article-body a:hover,
+.article-body a:focus-visible { color: #005fa3; }
 .article-body { display: flow-root; overflow-wrap: anywhere; }
