@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import ImageExtension from '@tiptap/extension-image';
+import { ResizableImage } from './ResizableImage';
 import LinkExtension from '@tiptap/extension-link';
 import {
   Bold,
@@ -30,10 +30,12 @@ export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
+    immediatelyRender: false,
+    shouldRerenderOnTransaction: true,
     extensions: [
-      StarterKit,
-      ImageExtension.configure({
-        inline: true,
+      StarterKit.configure({ link: false }),
+      ResizableImage.configure({
+        inline: false,
         allowBase64: true,
       }),
       LinkExtension.configure({
@@ -256,6 +258,25 @@ export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
       </div>
 
       {/* Editor Content Area */}
+      {editor.isActive('image') && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-[#E0E0E0] p-2 text-sm" aria-label="Image controls">
+          <span>Position:</span>
+          {['left', 'center', 'right'].map(align => (
+            <button key={align} type="button" onMouseDown={event => event.preventDefault()}
+              aria-pressed={editor.getAttributes('image').align === align}
+              className="border px-2 py-1 capitalize aria-pressed:bg-gray-200"
+              onClick={() => editor.chain().focus().updateAttributes('image', { align }).run()}>{align}</button>
+          ))}
+          <span>Size:</span>
+          {[['S', '320px'], ['M', '480px'], ['L', '640px'], ['Full', '100%']].map(([label, width]) => (
+            <button key={label} type="button" onMouseDown={event => event.preventDefault()}
+              aria-label={`Image size ${label}`} aria-pressed={editor.getAttributes('image').width === width}
+              className="border px-2 py-1 aria-pressed:bg-gray-200"
+              onClick={() => editor.chain().focus().updateAttributes('image', { width }).run()}>{label}</button>
+          ))}
+          <span className="text-xs text-gray-600">Drag an image corner to resize.</span>
+        </div>
+      )}
       <EditorContent editor={editor} />
     </div>
   );
