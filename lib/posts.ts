@@ -1,3 +1,6 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import { POST_CACHE_TAG, POST_CACHE_SECONDS } from "./post-cache";
 import { db } from "@/lib/db";
 import { Post } from "@/types";
 
@@ -15,6 +18,7 @@ function normalizePost(post: any): Post {
   if (!post) return post;
   return {
     ...post,
+    content: post.content ?? "",
     author: post.author
       ? {
         id: post.author.id,
@@ -29,43 +33,46 @@ function normalizePost(post: any): Post {
   };
 }
 
-export async function getTopStory(): Promise<Post | null> {
+async function fetchTopStory(): Promise<Post | null> {
   const post = await db.post.findFirst({
     where: {
       status: "PUBLISHED",
       isTopStory: true,
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
   });
   return post ? normalizePost(post) : null;
 }
 
-export async function getSpotlightPosts(limit = 2): Promise<Post[]> {
+async function fetchSpotlightPosts(limit = 2): Promise<Post[]> {
   const posts = await db.post.findMany({
     where: {
       status: "PUBLISHED",
       isSpotlight: true,
       isTopStory: false,
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
   return posts.map(normalizePost);
 }
 
-export async function getLatestPosts(limit = 5): Promise<Post[]> {
+async function fetchLatestPosts(limit = 5): Promise<Post[]> {
   const posts = await db.post.findMany({
     where: { status: "PUBLISHED" },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
   return posts.map(normalizePost);
 }
 
-export async function getCategoryPosts(
+async function fetchCategoryPosts(
   category: string,
   limit = 6
 ): Promise<Post[]> {
@@ -77,14 +84,15 @@ export async function getCategoryPosts(
         mode: "insensitive",
       },
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
   return posts.map(normalizePost);
 }
 
-export async function getOpinionPosts(limit = 3): Promise<Post[]> {
+async function fetchOpinionPosts(limit = 3): Promise<Post[]> {
   const posts = await db.post.findMany({
     where: {
       status: "PUBLISHED",
@@ -93,24 +101,25 @@ export async function getOpinionPosts(limit = 3): Promise<Post[]> {
         { category: { equals: "OPINION", mode: "insensitive" } },
       ],
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
   return posts.map(normalizePost);
 }
 
-export async function getPostBySlug(slug: string): Promise<Post | null> {
-  const post = await db.post.findUnique({
-    where: { slug },
-    include: { author: true },
+async function fetchPostBySlug(slug: string): Promise<Post | null> {
+  const post = await db.post.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
   });
   return post ? normalizePost(post) : null;
 }
 
 export async function getAllPosts(): Promise<Post[]> {
   const posts = await db.post.findMany({
-    include: { author: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { createdAt: "desc" },
   });
   return posts.map(normalizePost);
@@ -140,7 +149,8 @@ export async function searchPosts(
         },
       ],
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
@@ -148,7 +158,7 @@ export async function searchPosts(
   return posts.map(normalizePost);
 }
 
-export async function getPostsByTag(
+async function fetchPostsByTag(
   tag: string,
   limit = 30
 ): Promise<Post[]> {
@@ -160,7 +170,8 @@ export async function getPostsByTag(
       status: "PUBLISHED",
       tags: { has: clean },
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
@@ -168,7 +179,7 @@ export async function getPostsByTag(
   return posts.map(normalizePost);
 }
 
-export async function getArchivePosts(options?: {
+async function fetchArchivePosts(options?: {
   year?: number;
   month?: number;
   limit?: number;
@@ -198,7 +209,8 @@ export async function getArchivePosts(options?: {
         }
         : {}),
     },
-    include: { author: true },
+    omit: { content: true },
+    include: { author: { select: { id: true, name: true, email: true, image: true, role: true, bio: true } } },
     orderBy: { publishedAt: "desc" },
     take: limit,
   });
@@ -207,7 +219,7 @@ export async function getArchivePosts(options?: {
 }
 
 /** Extract distinct years and months from database */
-export async function getArchiveTree(): Promise<
+async function fetchArchiveTree(): Promise<
   { year: number; months: { monthNumber: number; monthName: string; count: number }[] }[]
 > {
   const posts = await db.post.findMany({
@@ -256,6 +268,18 @@ export async function getArchiveTree(): Promise<
 
   return tree;
 }
+
+
+// Explicit Data Cache works with the existing dynamic routes, without caching admin data.
+export const getTopStory = unstable_cache(fetchTopStory, ["getTopStory-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getSpotlightPosts = unstable_cache(fetchSpotlightPosts, ["getSpotlightPosts-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getLatestPosts = unstable_cache(fetchLatestPosts, ["getLatestPosts-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getCategoryPosts = unstable_cache(fetchCategoryPosts, ["getCategoryPosts-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getOpinionPosts = unstable_cache(fetchOpinionPosts, ["getOpinionPosts-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getPostBySlug = cache(unstable_cache(fetchPostBySlug, ["getPostBySlug-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS }));
+export const getPostsByTag = unstable_cache(fetchPostsByTag, ["getPostsByTag-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getArchivePosts = unstable_cache(fetchArchivePosts, ["getArchivePosts-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
+export const getArchiveTree = unstable_cache(fetchArchiveTree, ["getArchiveTree-v1"], { tags: [POST_CACHE_TAG], revalidate: POST_CACHE_SECONDS });
 
 export const getArticlesByCategory = getCategoryPosts;
 export const getLatestArticles = getLatestPosts;

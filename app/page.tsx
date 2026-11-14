@@ -19,11 +19,13 @@ import {
 export const revalidate = 0;
 
 export default async function HomePage() {
-  const topStory = await getTopStory();
-  const spotlights = await getSpotlightPosts(2);
-  const latestPosts = await getLatestPosts(5);
-  const financePosts = await getCategoryPosts("FINANCE", 3);
-  const opinionPosts = await getOpinionPosts(3);
+  const [topStory, spotlights, latestPosts, financePosts, opinionPosts] = await Promise.all([
+    getTopStory(),
+    getSpotlightPosts(2),
+    getLatestPosts(5),
+    getCategoryPosts("FINANCE", 3),
+    getOpinionPosts(3),
+  ]);
 
   return (
     <div className="min-h-screen bg-white text-[#1A1A1A] flex flex-col font-serif">

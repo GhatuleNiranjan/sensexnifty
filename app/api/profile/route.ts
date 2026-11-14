@@ -1,3 +1,4 @@
+import { invalidatePublishedPosts } from "@/lib/post-cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
@@ -24,6 +25,7 @@ export async function PUT(req: Request) {
       },
     });
 
+    invalidatePublishedPosts();
     return NextResponse.json({
       message: "Profile updated successfully",
       user: {

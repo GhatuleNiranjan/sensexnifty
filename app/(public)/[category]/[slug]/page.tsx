@@ -1,4 +1,5 @@
 import { getPostBySlug } from "@/lib/posts";
+import { optimizeArticleImages } from "@/lib/article-images";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import TopBar from "@/components/public/TopBar";
@@ -10,6 +11,10 @@ import ShareButtons from "@/components/public/ShareButtons"; // <-- Import
 import { Tag } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+
+// Build article pages on first visit, then reuse them until content changes.
+export const revalidate = 60;
+export async function generateStaticParams() { return []; }
 
 export async function generateMetadata({
   params,
@@ -139,7 +144,7 @@ export default async function ArticlePage({
 
           <div
             className="article-body prose prose-lg max-w-none text-[#1A1A1A] font-serif leading-relaxed space-y-4 pt-4 text-justify sm:text-left [&_[data-align='left']]:float-left [&_[data-align='left']]:mr-6 [&_[data-align='left']]:mb-4 [&_[data-align='right']]:float-right [&_[data-align='right']]:ml-6 [&_[data-align='right']]:mb-4 [&_[data-align='center']]:block [&_[data-align='center']]:mx-auto [&_[data-align='center']]:my-6 [&_img]:rounded-none [&_img]:border [&_img]:border-[#E0E0E0]"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: optimizeArticleImages(post.content) }}
           />
 
           {post.tags && post.tags.length > 0 && (

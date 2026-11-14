@@ -1,3 +1,4 @@
+import { invalidatePublishedPosts } from "@/lib/post-cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
       include: { author: true },
     });
 
+    invalidatePublishedPosts();
     return NextResponse.json(post, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/posts error:", error);

@@ -10,7 +10,8 @@ import { getArchivePosts } from "@/lib/posts";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
-export const revalidate = 0;
+export const revalidate = 60;
+export async function generateStaticParams() { return []; }
 
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",

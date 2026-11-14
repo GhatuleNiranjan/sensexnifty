@@ -18,8 +18,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ArchiveIndexPage() {
-    const archiveTree = await getArchiveTree();
-    const allArchivedPosts = await getArchivePosts({ limit: 50 });
+    const [archiveTree, allArchivedPosts] = await Promise.all([
+        getArchiveTree(),
+        getArchivePosts({ limit: 50 }),
+    ]);
 
     return (
         <div className="min-h-screen bg-white text-[#1A1A1A] flex flex-col font-serif">

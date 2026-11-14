@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter, Source_Serif_4 } from "next/font/google";
-import Providers from "@/components/Providers";
 import "./globals.css";
 import { GoogleAnalytics } from '@next/third-parties/google'
 
@@ -35,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${inter.variable} ${sourceSerif.variable} font-body bg-background text-primaryText`}>
-        <Providers>{children}</Providers>
+        {children}
       </body> 
       <GoogleAnalytics gaId="G-F03CJPZS6X" />
     </html>

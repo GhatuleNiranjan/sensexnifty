@@ -1,3 +1,4 @@
+import { invalidatePublishedPosts } from "@/lib/post-cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
@@ -81,6 +82,7 @@ export async function PUT(
       include: { author: true },
     });
 
+    invalidatePublishedPosts();
     return NextResponse.json(updatedPost);
   } catch (error: any) {
     console.error("PUT /api/posts/[id] error:", error);
@@ -103,6 +105,7 @@ export async function DELETE(
 
     const { id } = await params;
     await db.post.delete({ where: { id } });
+    invalidatePublishedPosts();
     return NextResponse.json({ message: "Post deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });

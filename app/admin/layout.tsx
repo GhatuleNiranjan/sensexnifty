@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
 import { Settings } from "lucide-react";
+import Providers from "@/components/Providers";
 
 export default async function AdminLayout({
     children,
@@ -12,7 +13,7 @@ export default async function AdminLayout({
     const session = await getServerSession(authOptions);
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A]">
+        <Providers><div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A]">
             {session?.user && (
                 <header className="bg-white border-b border-[#E0E0E0] sticky top-0 z-40">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
@@ -60,6 +61,6 @@ export default async function AdminLayout({
                 </header>
             )}
             <main>{children}</main>
-        </div>
+        </div></Providers>
     );
 }
