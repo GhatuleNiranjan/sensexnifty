@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className={`${playfair.variable} ${inter.variable} ${sourceSerif.variable} font-body bg-background text-primaryText`}>
         <Providers>{children}</Providers>
       </body> 
-      <GoogleAnalytics gaId="G-G-F03CJPZS6X" />
+      <GoogleAnalytics gaId="G-F03CJPZS6X" />
     </html>
   );
 }
