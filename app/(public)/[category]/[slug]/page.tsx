@@ -138,7 +138,7 @@ export default async function ArticlePage({
           )}
 
           <div
-            className="prose prose-lg max-w-none text-[#1A1A1A] font-serif leading-relaxed space-y-4 pt-4 text-justify sm:text-left [&_a]:text-[#0056b3] [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-[#003d80] [&_[data-align='left']]:float-left [&_[data-align='left']]:mr-6 [&_[data-align='left']]:mb-4 [&_[data-align='right']]:float-right [&_[data-align='right']]:ml-6 [&_[data-align='right']]:mb-4 [&_[data-align='center']]:block [&_[data-align='center']]:mx-auto [&_[data-align='center']]:my-6 [&_img]:rounded-none [&_img]:border [&_img]:border-[#E0E0E0]"
+            className="article-body prose prose-lg max-w-none text-[#1A1A1A] font-serif leading-relaxed space-y-4 pt-4 text-justify sm:text-left [&_a]:text-[#0056b3] [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-[#003d80] [&_[data-align='left']]:float-left [&_[data-align='left']]:mr-6 [&_[data-align='left']]:mb-4 [&_[data-align='right']]:float-right [&_[data-align='right']]:ml-6 [&_[data-align='right']]:mb-4 [&_[data-align='center']]:block [&_[data-align='center']]:mx-auto [&_[data-align='center']]:my-6 [&_img]:rounded-none [&_img]:border [&_img]:border-[#E0E0E0]"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 

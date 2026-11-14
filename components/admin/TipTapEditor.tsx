@@ -258,6 +258,24 @@ export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
       </div>
 
       {/* Editor Content Area */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E0E0E0] p-2 text-sm" aria-label="More formatting">
+        {[
+          { label: 'Normal text', active: editor.isActive('paragraph'), run: () => editor.chain().focus().setParagraph().run() },
+          { label: 'Underline', active: editor.isActive('underline'), run: () => editor.chain().focus().toggleUnderline().run() },
+          { label: 'Strikethrough', active: editor.isActive('strike'), run: () => editor.chain().focus().toggleStrike().run() },
+          { label: 'Clear formatting', run: () => editor.chain().focus().unsetAllMarks().clearNodes().run() },
+          { label: 'Divider', run: () => editor.chain().focus().setHorizontalRule().run() },
+          { label: 'Indent list', disabled: !editor.can().sinkListItem('listItem'), run: () => editor.chain().focus().sinkListItem('listItem').run() },
+          { label: 'Outdent list', disabled: !editor.can().liftListItem('listItem'), run: () => editor.chain().focus().liftListItem('listItem').run() },
+          { label: 'Remove link', disabled: !editor.isActive('link'), run: () => editor.chain().focus().extendMarkRange('link').unsetLink().run() },
+        ].map(control => (
+          <button key={control.label} type="button" disabled={control.disabled}
+            aria-pressed={control.active} onMouseDown={event => event.preventDefault()}
+            onClick={control.run} className="border px-2 py-1 hover:bg-gray-100 aria-pressed:bg-gray-200 disabled:opacity-40">
+            {control.label}
+          </button>
+        ))}
+      </div>
       {editor.isActive('image') && (
         <div className="flex flex-wrap items-center gap-2 border-b border-[#E0E0E0] p-2 text-sm" aria-label="Image controls">
           <span>Position:</span>
@@ -278,6 +296,11 @@ export default function TipTapEditor({ content, onChange }: TipTapEditorProps) {
         </div>
       )}
       <EditorContent editor={editor} />
+      <div className="border-t border-[#E0E0E0] px-4 py-2 text-xs text-gray-600">
+        {editor.getText().trim().split(/\s+/u).filter(Boolean).length} words
+        {' · '}{editor.getText().length} characters
+        {' · Select text to format. Use Tab / Shift+Tab to indent / outdent list items.'}
+      </div>
     </div>
   );
 }
