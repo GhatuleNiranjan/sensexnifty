@@ -28,18 +28,7 @@ export interface Post {
   updatedAt: string | Date;
 }
 
-export type CategorySlug =
-  | "usa"
-  | "europe"
-  | "russia"
-  | "technology"
-  | "opinion"
-  | "finance"
-  | "USA"
-  | "EUROPE"
-  | "RUSSIA"
-  | "TECHNOLOGY"
-  | "OPINION"
-  | "FINANCE";
+type SectionSlug = (typeof import("@/lib/constants").CATEGORIES)[number]["slug"];
+export type CategorySlug = SectionSlug | Uppercase<SectionSlug>;
 
 export type Category = CategorySlug;

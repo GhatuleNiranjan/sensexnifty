@@ -1,3 +1,4 @@
+import { CATEGORIES } from "@/lib/constants";
 import Link from "next/link";
 
 export default function Footer() {
@@ -24,36 +25,9 @@ export default function Footer() {
                             Coverage Sections
                         </h3>
                         <ul className="font-sans text-xs text-[#6B6B6B] space-y-1.5 uppercase font-medium">
-                            <li>
-                                <Link href="/usa" className="hover:text-[#1A1A1A]">
-                                    USA
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/europe" className="hover:text-[#1A1A1A]">
-                                    Europe
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/russia" className="hover:text-[#1A1A1A]">
-                                    Russia
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/technology" className="hover:text-[#1A1A1A]">
-                                    Technology
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/opinion" className="hover:text-[#1A1A1A]">
-                                    Opinion
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/finance" className="hover:text-[#1A1A1A]">
-                                    Finance
-                                </Link>
-                            </li>
+                            {CATEGORIES.map(category => (
+                                <li key={category.slug}><Link href={`/${category.slug}`} className="hover:text-[#1A1A1A]">{category.name}</Link></li>
+                            ))}
                         </ul>
                     </div>
 

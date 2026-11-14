@@ -1,4 +1,5 @@
 "use client";
+import { categoryName } from "@/lib/constants";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -142,7 +143,7 @@ export default function AdminDashboardPage() {
                                     </td>
                                     <td className="p-3 font-serif font-semibold text-[#1A1A1A]">
                                         <Link
-                                            href={`/${post.category}/${post.slug}`}
+                                            href={`/${post.category.toLowerCase()}/${post.slug}`}
                                             target="_blank"
                                             className="hover:text-[#1A3A5C]"
                                         >
@@ -155,7 +156,7 @@ export default function AdminDashboardPage() {
                                         )}
                                     </td>
                                     <td className="p-3 uppercase text-xs font-semibold text-[#1A3A5C]">
-                                        {post.category}
+                                        {categoryName(post.category)}
                                     </td>
                                     <td className="p-3 text-xs text-[#6B6B6B]">
                                         {new Date(post.publishedAt).toLocaleDateString("en-US", {
@@ -167,7 +168,7 @@ export default function AdminDashboardPage() {
                                     <td className="p-3 text-center">
                                         <div className="flex items-center justify-center space-x-2">
                                             <Link
-                                                href={`/${post.category}/${post.slug}`}
+                                                href={`/${post.category.toLowerCase()}/${post.slug}`}
                                                 target="_blank"
                                                 className="p-1.5 border border-[#E0E0E0] text-[#1A1A1A] hover:bg-gray-100 bg-white"
                                                 title="View Article"

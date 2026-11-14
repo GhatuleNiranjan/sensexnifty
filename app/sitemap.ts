@@ -3,14 +3,7 @@ import { db } from "@/lib/db";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sensexnifty.com";
 
-const CATEGORIES = [
-    "usa",
-    "europe",
-    "russia",
-    "technology",
-    "opinion",
-    "finance",
-];
+import { CATEGORIES } from "@/lib/constants";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const staticRoutes: MetadataRoute.Sitemap = [
@@ -33,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.5,
         },
         ...CATEGORIES.map((cat) => ({
-            url: `${SITE_URL}/${cat}`,
+            url: `${SITE_URL}/${cat.slug}`,
             lastModified: new Date(),
             changeFrequency: "hourly" as const,
             priority: 0.9,

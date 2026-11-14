@@ -1,3 +1,4 @@
+import { categoryName } from "@/lib/constants";
 import { getPostBySlug } from "@/lib/posts";
 import { optimizeArticleImages } from "@/lib/article-images";
 import { notFound } from "next/navigation";
@@ -82,7 +83,7 @@ export default async function ArticlePage({
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
         <article className="space-y-6">
           <div className="flex items-center gap-2 text-xs font-sans font-bold uppercase tracking-widest text-[#6B6B6B] border-b border-[#E0E0E0] pb-3">
-            <span className="text-[#1A3A5C]">{post.category}</span>
+            <span className="text-[#1A3A5C]">{categoryName(post.category)}</span>
             {post.location && (
               <>
                 <span>•</span>

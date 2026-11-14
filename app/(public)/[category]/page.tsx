@@ -8,14 +8,7 @@ import CategoryNav from "@/components/public/CategoryNav";
 import EditionStrip from "@/components/public/EditionStrip";
 import Footer from "@/components/public/Footer";
 
-const VALID_CATEGORIES = [
-  "usa",
-  "europe",
-  "russia",
-  "technology",
-  "opinion",
-  "finance",
-];
+import { CATEGORIES, categoryName } from "@/lib/constants";
 
 export const revalidate = 60;
 export async function generateStaticParams() { return []; }
@@ -28,7 +21,7 @@ export default async function CategoryPage({
   const { category } = await params;
   const lowerCategory = category.toLowerCase();
 
-  if (!VALID_CATEGORIES.includes(lowerCategory)) {
+  if (!CATEGORIES.some(item => item.slug === lowerCategory)) {
     notFound();
   }
 
@@ -44,7 +37,7 @@ export default async function CategoryPage({
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="pb-4 mb-8 border-b-2 border-[#1A1A1A] flex items-center justify-between">
           <h1 className="font-serif text-3xl font-extrabold uppercase text-[#1A1A1A]">
-            {category} Edition
+            {categoryName(category)} Edition
           </h1>
           <span className="text-xs font-sans text-[#6B6B6B] font-bold uppercase tracking-widest">
             {posts.length} Dispatches Published
@@ -54,7 +47,7 @@ export default async function CategoryPage({
         {posts.length === 0 ? (
           <div className="p-12 text-center bg-[#F8F8F8] border border-[#E0E0E0] my-8">
             <p className="font-serif italic text-base text-[#6B6B6B]">
-              No dispatches currently published under the {category.toUpperCase()} section.
+              No dispatches currently published under the {categoryName(category)} section.
             </p>
           </div>
         ) : (
@@ -98,7 +91,7 @@ export default async function CategoryPage({
                     )}
 
                     <div className="flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B6B6B]">
-                      <span className="text-[#1A3A5C]">{post.category}</span>
+                      <span className="text-[#1A3A5C]">{categoryName(post.category)}</span>
                       {post.location && (
                         <>
                           <span>•</span>

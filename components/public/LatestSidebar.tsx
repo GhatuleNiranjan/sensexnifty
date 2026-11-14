@@ -1,3 +1,4 @@
+import { categoryName } from "@/lib/constants";
 import { Post } from "@/types";
 import Link from "next/link";
 
@@ -29,7 +30,7 @@ export default function LatestSidebar({ posts }: LatestSidebarProps) {
           return (
             <article key={post.id} className="py-4 first:pt-0 last:pb-0 space-y-1.5">
               <div className="flex items-center justify-between text-[10px] font-sans font-bold uppercase tracking-wider">
-                <span className="text-[#1A3A5C]">{post.category}</span>
+                <span className="text-[#1A3A5C]">{categoryName(post.category)}</span>
                 <span className="text-[#6B6B6B]">{publishedTime}</span>
               </div>
 

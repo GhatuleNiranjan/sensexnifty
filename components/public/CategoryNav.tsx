@@ -3,14 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const CATEGORIES = [
-  { name: "USA", slug: "usa" },
-  { name: "EUROPE", slug: "europe" },
-  { name: "RUSSIA", slug: "russia" },
-  { name: "TECHNOLOGY", slug: "technology" },
-  { name: "OPINION", slug: "opinion" },
-  { name: "FINANCE", slug: "finance" },
-];
+import { CATEGORIES } from "@/lib/constants";
 
 interface CategoryNavProps {
   activeCategory?: string;
@@ -22,7 +15,7 @@ export default function CategoryNav({ activeCategory }: CategoryNavProps) {
   return (
     <nav className="border-y border-[#E0E0E0] bg-white sticky top-0 z-30 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ul className="flex items-center justify-between sm:justify-center sm:gap-8 overflow-x-auto py-2.5 text-xs font-sans font-bold uppercase tracking-widest no-scrollbar">
+        <ul className="flex items-center gap-6 xl:flex-wrap xl:justify-center xl:gap-x-6 xl:gap-y-3 overflow-x-auto py-2.5 text-xs font-sans font-bold uppercase tracking-widest no-scrollbar">
           {CATEGORIES.map((cat) => {
             const href = `/${cat.slug}`;
             const isActive = activeCategory

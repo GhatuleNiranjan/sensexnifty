@@ -8,7 +8,7 @@ import ImageUpload from "@/components/admin/ImageUpload";
 import { ArrowLeft, Tag, UserCheck, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-const CATEGORIES = ["USA", "EUROPE", "RUSSIA", "TECHNOLOGY", "OPINION", "FINANCE"];
+import { CATEGORIES } from "@/lib/constants";
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -154,8 +154,8 @@ export default function NewArticlePage() {
                 className="w-full text-xs font-sans p-2.5 bg-[#F8F8F8] border border-[#E0E0E0] focus:outline-none focus:border-[#1A1A1A] uppercase text-[#1A1A1A]"
               >
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                  <option key={cat.slug} value={cat.slug.toUpperCase()}>
+                    {cat.name}
                   </option>
                 ))}
               </select>

@@ -70,3 +70,12 @@ img {
 .article-body a:hover,
 .article-body a:focus-visible { color: #005fa3; }
 .article-body { display: flow-root; overflow-wrap: anywhere; }
+
+@keyframes stock-ticker-scroll { to { transform: translateX(-50%); } }
+.stock-ticker-track { animation: stock-ticker-scroll 180s linear infinite; }
+.stock-ticker-viewport:hover .stock-ticker-track,
+.stock-ticker-viewport:focus-within .stock-ticker-track { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  .stock-ticker-track { animation: none; }
+  .stock-ticker-track > [aria-hidden="true"] { display: none; }
+}

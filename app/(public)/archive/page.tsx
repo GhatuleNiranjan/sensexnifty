@@ -1,3 +1,4 @@
+import { categoryName } from "@/lib/constants";
 import Link from "next/link";
 import Image from "next/image";
 import TopBar from "@/components/public/TopBar";
@@ -146,7 +147,7 @@ export default async function ArchiveIndexPage() {
                                                 )}
 
                                                 <div className="flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-widest text-[#6B6B6B]">
-                                                    <span className="text-[#1A3A5C]">{post.category}</span>
+                                                    <span className="text-[#1A3A5C]">{categoryName(post.category)}</span>
                                                     {post.location && (
                                                         <>
                                                             <span>•</span>

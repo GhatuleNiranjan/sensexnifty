@@ -13,4 +13,14 @@ export const CATEGORIES = [
     { name: "TECHNOLOGY", slug: "technology" },
     { name: "OPINION", slug: "opinion" },
     { name: "FINANCE", slug: "finance" },
-];
+    { name: "CHINA", slug: "china" },
+    { name: "INDIAN STOCK", slug: "indian-stock" },
+    { name: "RUSSIA-UKRAINE", slug: "russia-ukraine" },
+    { name: "NATO", slug: "nato" },
+    { name: "BROKERAGE REPORTS", slug: "brokerage-reports" },
+    { name: "INDIA NEWS", slug: "india-news" },
+] as const;
+
+export function categoryName(value: string): string {
+    return CATEGORIES.find(category => category.slug === value.toLowerCase())?.name || value;
+}

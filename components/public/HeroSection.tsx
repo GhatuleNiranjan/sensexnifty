@@ -1,3 +1,4 @@
+import { categoryName } from "@/lib/constants";
 import { Post } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,7 +30,7 @@ export default function HeroSection({ topStory, spotlights }: HeroSectionProps) 
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-[10px] font-sans font-extrabold uppercase tracking-widest">
           <span className="bg-[#6B1C2A] text-white px-2 py-0.5">TOP STORY</span>
-          <span className="text-[#1A3A5C]">{topStory.category}</span>
+          <span className="text-[#1A3A5C]">{categoryName(topStory.category)}</span>
           {topStory.location && (
             <>
               <span className="text-[#6B6B6B]">•</span>
@@ -99,7 +100,7 @@ export default function HeroSection({ topStory, spotlights }: HeroSectionProps) 
                 >
                   <div className="space-y-2">
                     <span className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#1A3A5C]">
-                      {spotlight.category}
+                      {categoryName(spotlight.category)}
                     </span>
                     <Link href={`/${spotlight.category.toLowerCase()}/${spotlight.slug}`}>
                       <h3 className="font-serif text-base font-bold text-[#1A1A1A] leading-snug line-clamp-2 hover:text-[#1A3A5C] transition-colors">
