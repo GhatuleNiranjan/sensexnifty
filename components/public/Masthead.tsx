@@ -3,7 +3,14 @@ import StockTicker from './StockTicker';
 
 export default function Masthead() {
     return (
-        <><header className="bg-white py-6 sm:py-8 border-b border-[#E0E0E0]">
+        <>
+        {/* React hoists this async script into the document head and deduplicates it. */}
+        <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7407357339041411"
+            crossOrigin="anonymous"
+        />
+        <header className="bg-white py-6 sm:py-8 border-b border-[#E0E0E0]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2">
                 <div className="flex items-center justify-between text-[10px] font-sans font-bold uppercase tracking-[0.2em] text-[#6B6B6B] border-b border-[#E0E0E0] pb-2 mb-4">
                     <span>News Behind The Numbers</span>

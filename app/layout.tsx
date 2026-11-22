@@ -24,6 +24,9 @@ const sourceSerif = Source_Serif_4({
 export const metadata: Metadata = {
   title: "SensexNifty | News Behind The Numbers",
   description: "Independent Financial Journalism. Facts First. Context Always.",
+  other: {
+    "google-adsense-account": "ca-pub-7407357339041411",
+  },
 };
 
 export default function RootLayout({
