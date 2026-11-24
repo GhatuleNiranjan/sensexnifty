@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import StockTicker from './StockTicker';
 
 export default function Masthead() {
@@ -20,15 +19,14 @@ export default function Masthead() {
                 </div>
 
                 <Link href="/" className="inline-block group">
-                    <Image
-                        src="/sensexnifty-logo.avif"
-                        alt="SensexNifty - Global Markets, Geopolitics, Economy"
-                        width={768}
-                        height={512}
-                        priority
-                        className="h-auto w-[min(78vw,34rem)] group-hover:opacity-90 transition-opacity"
-                    />
+                    <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[#1A1A1A] uppercase group-hover:opacity-90 transition-opacity">
+                        SENSEXNIFTY
+                    </h1>
                 </Link>
+
+                <p className="font-serif italic text-xs sm:text-sm text-[#6B6B6B] tracking-widest uppercase">
+                    News Behind The Numbers
+                </p>
             </div>
         </header><StockTicker /></>
     );
